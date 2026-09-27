@@ -1,0 +1,97 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="beII7S0Exq6FjCpjWNUh">
+    <mxGraphModel dx="1144" dy="624" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="680" width="530" x="120" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Seller" vertex="1">
+          <mxGeometry height="30" width="60" x="355" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Seller Onboarding" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-4" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-3" style="endArrow=none;dashed=1;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="305" y="140" as="sourcePoint" />
+            <mxPoint x="370" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Pending Approval" vertex="1">
+          <mxGeometry height="60" width="120" x="365" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-6" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-5" style="endArrow=classic;startArrow=classic;html=1;rounded=0;dashed=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-7" value="">
+          <mxGeometry height="100" relative="1" width="100" as="geometry">
+            <mxPoint x="530" y="170" as="sourcePoint" />
+            <mxPoint x="700" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-7" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="Admin" vertex="1">
+          <mxGeometry height="60" width="120" x="700" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-8" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Create Listing" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="190" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-9" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Edit Listing" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="280" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-10" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Delete Listing" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-11" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="View Sale History" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-12" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Update Profile" vertex="1">
+          <mxGeometry height="60" width="120" x="160" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-13" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="DB of Users" vertex="1">
+          <mxGeometry height="60" width="120" x="700" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-14" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-3" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-13" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="370" as="sourcePoint" />
+            <mxPoint x="430" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-15" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-12" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-13" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="540" as="sourcePoint" />
+            <mxPoint x="430" y="490" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-16" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="DB of Listings" vertex="1">
+          <mxGeometry height="60" width="120" x="700" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-17" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-8" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="370" as="sourcePoint" />
+            <mxPoint x="430" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-18" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-9" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="370" as="sourcePoint" />
+            <mxPoint x="430" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-19" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-10" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-16" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="370" as="sourcePoint" />
+            <mxPoint x="430" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-20" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="DB of Orders" vertex="1">
+          <mxGeometry height="60" width="120" x="700" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="kfx8WdaNQadS-QC1PvAd-21" edge="1" parent="1" source="kfx8WdaNQadS-QC1PvAd-11" style="endArrow=classic;startArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="kfx8WdaNQadS-QC1PvAd-20" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="380" y="370" as="sourcePoint" />
+            <mxPoint x="430" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
