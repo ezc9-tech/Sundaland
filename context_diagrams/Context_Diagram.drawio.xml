@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="ugCo9pNzm81uDlOqbFTr">
+    <mxGraphModel dx="582" dy="881" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="EUioxMs74RRGdYVPyfP0-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;" value="" vertex="1">
+          <mxGeometry height="351" width="280" x="151" y="195" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-2" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Sundaland System" vertex="1">
+          <mxGeometry height="30" width="60" x="261" y="144" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-8" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-3" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="EUioxMs74RRGdYVPyfP0-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-9" connectable="0" parent="EUioxMs74RRGdYVPyfP0-8" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=none;" value="&lt;div&gt;Search, orders,&lt;/div&gt;&lt;div&gt;&amp;nbsp;listing submissions,&amp;nbsp;&lt;/div&gt;&lt;div&gt;moderation&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0503" as="geometry">
+            <mxPoint x="-6" y="-36" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Users" vertex="1">
+          <mxGeometry height="60" width="120" x="609" y="117" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Bank/Payment System" vertex="1">
+          <mxGeometry height="60" width="120" x="614" y="317" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-5" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;" value="Email/Notification Service" vertex="1">
+          <mxGeometry height="60" width="120" x="586" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-10" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-1" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;" target="EUioxMs74RRGdYVPyfP0-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="623" y="267" as="sourcePoint" />
+            <mxPoint x="463" y="328" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-11" connectable="0" parent="EUioxMs74RRGdYVPyfP0-10" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=none;" value="&lt;div&gt;Receipts,&amp;nbsp;&lt;/div&gt;&lt;div&gt;moderation notifications,&lt;/div&gt;&lt;div&gt;&amp;nbsp;account updates&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0503" as="geometry">
+            <mxPoint x="16" y="32" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-12" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-4" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.986;entryY=0.403;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;" target="EUioxMs74RRGdYVPyfP0-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-13" connectable="0" parent="EUioxMs74RRGdYVPyfP0-12" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=none;" value="&lt;div&gt;Transaction confirmation,&amp;nbsp;&lt;/div&gt;&lt;div&gt;payment tokens&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0344" y="1" as="geometry">
+            <mxPoint x="-1" y="-19" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-14" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-1" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1.001;exitY=0.625;exitDx=0;exitDy=0;entryX=0;entryY=1;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;exitPerimeter=0;" target="EUioxMs74RRGdYVPyfP0-4">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="678" y="493" as="sourcePoint" />
+            <mxPoint x="519" y="462" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-15" connectable="0" parent="EUioxMs74RRGdYVPyfP0-14" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;labelBackgroundColor=none;" value="&lt;div&gt;Payment process requests,&amp;nbsp;&lt;/div&gt;&lt;div&gt;payout requests&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0344" y="1" as="geometry">
+            <mxPoint x="13" y="28" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-16" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-5" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0;exitDx=0;exitDy=0;entryX=0.997;entryY=0.814;entryDx=0;entryDy=0;entryPerimeter=0;fontSize=12;startSize=8;endSize=8;" target="EUioxMs74RRGdYVPyfP0-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-17" connectable="0" parent="EUioxMs74RRGdYVPyfP0-16" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="Delivery Recipts&amp;nbsp;" vertex="1">
+          <mxGeometry relative="1" x="-0.0937" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-18" edge="1" parent="1" source="EUioxMs74RRGdYVPyfP0-1" style="edgeStyle=none;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.986;exitY=0.949;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;fontSize=12;startSize=8;endSize=8;exitPerimeter=0;" target="EUioxMs74RRGdYVPyfP0-5">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="694" y="637" as="sourcePoint" />
+            <mxPoint x="538" y="628" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="EUioxMs74RRGdYVPyfP0-19" connectable="0" parent="EUioxMs74RRGdYVPyfP0-18" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=12;" value="&lt;div&gt;Newsletters, notices&lt;/div&gt;&lt;div&gt;&amp;nbsp;desired to be sent out&lt;/div&gt;" vertex="1">
+          <mxGeometry relative="1" x="-0.0937" as="geometry">
+            <mxPoint x="2" y="22" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
