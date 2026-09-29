@@ -1,11 +1,18 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import LoginPage from './pages/LoginPage';
+import ConstructionPage from './pages/UnderConstructionPage';
+
 function App() {
 
+
   return (
-    <>
-      <h1>Hello World</h1>
-      <p>Welcome to Group-7's project frontend</p>
-    </>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage/>} />
+        <Route path="/register" element={<ConstructionPage/>} />
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App
