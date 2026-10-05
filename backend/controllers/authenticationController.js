@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { testQuery } from "../routes/authenticationRoutes.js";
+import { register } from "../routes/authenticationRoutes.js";
 
 const authRoutes = Router()
 
-authRoutes.get("/", testQuery);
+authRoutes.post("/register", register);
 
 export default authRoutes;

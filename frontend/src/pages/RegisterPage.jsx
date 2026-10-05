@@ -1,30 +1,119 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 function RegisterPage() {
   const [role, setRole] = useState("buyer");
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData.entries());
+
+    data.role = role;
+
+    if (data.password !== data["confirm-password"]) {
+      setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("http://localhost:3000/api/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: data.email,
+          password: data.password,
+          user_type: data.role,
+          first_name: data.first_name,
+          last_name: data.last_name,
+          phone_number: data.phone_number,
+          address: data.address,
+          date_of_birth: data.date_of_birth,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to register");
+      }
+
+      localStorage.setItem("token", result.token);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <>
       <div className="register-container">
         <img src="/logo.jpg" alt="Sundaland Logo" />
         <h1>Register</h1>
-        <form action="">
+
+        {error && (
+          <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="first_name">First Name:</label>
+          <input
+            type="text"
+            name="first_name"
+            id="first_name"
+            placeholder="John"
+            required
+          />
+
+          <label htmlFor="last_name">Last Name:</label>
+          <input
+            type="text"
+            name="last_name"
+            id="last_name"
+            placeholder="Doe"
+            required
+          />
+
           <label htmlFor="email">Email:</label>
           <input
             type="email"
             name="email"
             id="email"
             placeholder="Email@gmail.com"
+            required
           />
 
-          <label htmlFor="username">Username:</label>
+          <label htmlFor="phone_number">Phone Number:</label>
+          <input
+            type="tel"
+            name="phone_number"
+            id="phone_number"
+            placeholder="555-123-4567"
+            required
+          />
+
+          <label htmlFor="address">Address:</label>
           <input
             type="text"
-            name="username"
-            id="username"
-            placeholder="Username"
+            name="address"
+            id="address"
+            placeholder="123 Main St"
+            required
           />
+
+          <label htmlFor="date_of_birth">Date of Birth:</label>
+          <input type="date" name="date_of_birth" id="date_of_birth" required />
 
           <label htmlFor="password">Password:</label>
           <input
@@ -32,6 +121,7 @@ function RegisterPage() {
             name="password"
             id="password"
             placeholder="******"
+            required
           />
 
           <label htmlFor="confirm-password">Confirm Password:</label>
@@ -40,6 +130,7 @@ function RegisterPage() {
             name="confirm-password"
             id="confirm-password"
             placeholder="******"
+            required
           />
 
           <label htmlFor="role">Role:</label>
@@ -65,7 +156,11 @@ function RegisterPage() {
               />
             </>
           )}
-          <button type="submit">Register</button>
+
+          <button type="submit" disabled={isLoading}>
+            {isLoading ? "Registering..." : "Register"}
+          </button>
+
           <span>
             Already have an account? <Link to="/login">Login here!</Link>
           </span>
