@@ -5,6 +5,53 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+export async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(401).json({ error: "Missing required fields!" });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: {
+        login: {
+          email: email,
+        }
+      },
+      include: {
+        login: true
+      }
+    })
+
+    if(!existingUser) {
+      return res.status(409).json({ error: "User does not exist"});
+    }
+
+    if (!existingUser.approved) {
+      return res.status(403).json({ error: "User has not been approved yet. Please try again later."})
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, existingUser.login.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid Credentials"})
+    }
+
+    const token = jwt.sign({ userId: existingUser.id, userType: existingUser.user_type }, process.env.JWT_SECRET, { expiresIn: "1h"});
+
+    return res.status(201).json({
+      message: "User logged in Successfully",
+      token: token, 
+      user: {id: existingUser.id, first_name: existingUser.first_name, last_name: existingUser.last_name, user_type: existingUser.user_type}
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({error: "There was an Internal server error"});
+  }
+}
+
 export async function register(req, res) {
   try {
     const { first_name, last_name, phone_number, user_type, address, date_of_birth, email, password } = req.body;
