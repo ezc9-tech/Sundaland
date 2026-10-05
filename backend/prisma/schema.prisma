@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model Login {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String?  
+  ownerId   Int      @unique
+  owner     User     @relation(fields: [ownerId], references: [id])
+  lastLogin DateTime @default(now()) 
+}
+
+model User {
+  id            Int       @id @default(autoincrement())
+  first_name    String
+  last_name     String
+  phone_number  String
+  user_type     String      @default("buyer")
+  address       String
+  date_of_birth DateTime
+  approved      Boolean   @default(false)
+  
+  companyId     Int?
+  company       Company?  @relation(fields: [companyId], references: [id])
+  
+  login         Login?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Company {
+  id           Int      @id @default(autoincrement())
+  name         String   @unique
+  address      String
+  phone_number String
+  
+  sellers      User[]
+}
