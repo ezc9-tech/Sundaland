@@ -1,15 +1,14 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import toast, { Toaster } from "react-hot-toast";
 
 function RegisterPage() {
   const [role, setRole] = useState("buyer");
-  const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
 
     const formData = new FormData(e.target);
@@ -18,7 +17,7 @@ function RegisterPage() {
     data.role = role;
 
     if (data.password !== data["confirm-password"]) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match"); 
       setIsLoading(false);
       return;
     }
@@ -47,10 +46,15 @@ function RegisterPage() {
         throw new Error(result.error || "Failed to register");
       }
 
-      localStorage.setItem("token", result.token);
-      navigate("/dashboard");
+      toast.success("Waiting on admin approval, try to login in a minute!", {
+        duration: 4000,
+      });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 4000);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -58,13 +62,10 @@ function RegisterPage() {
 
   return (
     <>
+      <Toaster position="top-center" reverseOrder={false} />
       <div className="register-container">
         <img src="/logo.jpg" alt="Sundaland Logo" />
         <h1>Register</h1>
-
-        {error && (
-          <div style={{ color: "red", marginBottom: "1rem" }}>{error}</div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <label htmlFor="first_name">First Name:</label>
