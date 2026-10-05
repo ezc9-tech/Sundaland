@@ -29,13 +29,17 @@ function LoginPage() {
         throw new Error(result.error || "Failed to login");
       }
 
-      localStorage.setItem("token", result.token);
+      if (!result.token || !result.user) {
+        throw new Error("Login response is missing user or token data");
+      }
 
+      localStorage.setItem("token", result.token);
+      localStorage.setItem("user", JSON.stringify(result.user));
 
       toast.success("Logged in successfully!");
 
       setTimeout(() => {
-        navigate("/dashboard");
+        navigate("/");
       }, 1000);
     } catch (err) {
       toast.error(err.message);
@@ -43,7 +47,7 @@ function LoginPage() {
       setIsLoading(false);
     }
   };
-
+  
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
