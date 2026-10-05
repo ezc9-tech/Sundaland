@@ -47,38 +47,40 @@ function LoginPage() {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
 
-      <div className="login-container">
-        <img src="/logo.jpg" alt="Sundaland Logo" />
-        <h1>Login</h1>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            placeholder="Email@gmail.com"
-            required
-          />
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            placeholder="******"
-            required
-          />
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
-          <span>
-            Don't have an account? <Link to="/register">Register here!</Link>
-          </span>
-        </form>
+      <div className="auth-wrapper">
+        <div className="login-container">
+          <img src="/logo.jpg" alt="Sundaland Logo" />
+          <h1>Login</h1>
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Email@gmail.com"
+              required
+            />
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="******"
+              required
+            />
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Logging in..." : "Login"}
+            </button>
+            <span>
+              Don't have an account? <Link to="/register">Register here!</Link>
+            </span>
+          </form>
+        </div>
       </div>
     </>
   );

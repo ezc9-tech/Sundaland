@@ -63,109 +63,116 @@ function RegisterPage() {
   return (
     <>
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="register-container">
-        <img src="/logo.jpg" alt="Sundaland Logo" />
-        <h1>Register</h1>
+      <div className="auth-wrapper">
+        <div className="register-container">
+          <img src="/logo.jpg" alt="Sundaland Logo" />
+          <h1>Register</h1>
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="first_name">First Name:</label>
-          <input
-            type="text"
-            name="first_name"
-            id="first_name"
-            placeholder="John"
-            required
-          />
+          <form onSubmit={handleSubmit}>
+            <label htmlFor="first_name">First Name:</label>
+            <input
+              type="text"
+              name="first_name"
+              id="first_name"
+              placeholder="John"
+              required
+            />
 
-          <label htmlFor="last_name">Last Name:</label>
-          <input
-            type="text"
-            name="last_name"
-            id="last_name"
-            placeholder="Doe"
-            required
-          />
+            <label htmlFor="last_name">Last Name:</label>
+            <input
+              type="text"
+              name="last_name"
+              id="last_name"
+              placeholder="Doe"
+              required
+            />
 
-          <label htmlFor="email">Email:</label>
-          <input
-            type="email"
-            name="email"
-            id="email"
-            placeholder="Email@gmail.com"
-            required
-          />
+            <label htmlFor="email">Email:</label>
+            <input
+              type="email"
+              name="email"
+              id="email"
+              placeholder="Email@gmail.com"
+              required
+            />
 
-          <label htmlFor="phone_number">Phone Number:</label>
-          <input
-            type="tel"
-            name="phone_number"
-            id="phone_number"
-            placeholder="555-123-4567"
-            required
-          />
+            <label htmlFor="phone_number">Phone Number:</label>
+            <input
+              type="tel"
+              name="phone_number"
+              id="phone_number"
+              placeholder="555-123-4567"
+              required
+            />
 
-          <label htmlFor="address">Address:</label>
-          <input
-            type="text"
-            name="address"
-            id="address"
-            placeholder="123 Main St"
-            required
-          />
+            <label htmlFor="address">Address:</label>
+            <input
+              type="text"
+              name="address"
+              id="address"
+              placeholder="123 Main St"
+              required
+            />
 
-          <label htmlFor="date_of_birth">Date of Birth:</label>
-          <input type="date" name="date_of_birth" id="date_of_birth" required />
+            <label htmlFor="date_of_birth">Date of Birth:</label>
+            <input
+              type="date"
+              name="date_of_birth"
+              id="date_of_birth"
+              required
+            />
 
-          <label htmlFor="password">Password:</label>
-          <input
-            type="password"
-            name="password"
-            id="password"
-            placeholder="******"
-            required
-          />
+            <label htmlFor="password">Password:</label>
+            <input
+              type="password"
+              name="password"
+              id="password"
+              placeholder="******"
+              required
+            />
 
-          <label htmlFor="confirm-password">Confirm Password:</label>
-          <input
-            type="password"
-            name="confirm-password"
-            id="confirm-password"
-            placeholder="******"
-            required
-          />
+            <label htmlFor="confirm-password">Confirm Password:</label>
+            <input
+              type="password"
+              name="confirm-password"
+              id="confirm-password"
+              placeholder="******"
+              required
+            />
 
-          <label htmlFor="role">Role:</label>
-          <select
-            name="role"
-            id="role"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="admin">Admin</option>
-            <option value="buyer">Buyer</option>
-            <option value="seller">Seller</option>
-          </select>
+            <label htmlFor="role">Role:</label>
+            <select
+              name="role"
+              id="role"
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+            >
+              <option value="admin">Admin</option>
+              <option value="buyer">Buyer</option>
+              <option value="seller">Seller</option>
+            </select>
 
-          {role === "seller" && (
-            <>
-              <label htmlFor="store-name">Company Name:</label>
-              <input
-                type="text"
-                name="store-name"
-                id="store-name"
-                placeholder="Enter store name (Optional)"
-              />
-            </>
-          )}
+            {role === "seller" && (
+              <>
+                <label htmlFor="store-name">Company Name:</label>
+                <input
+                  type="text"
+                  name="store-name"
+                  id="store-name"
+                  placeholder="Enter store name (Optional)"
+                />
+              </>
+            )}
 
-          <button type="submit" disabled={isLoading}>
-            {isLoading ? "Registering..." : "Register"}
-          </button>
+            <button type="submit" disabled={isLoading}>
+              {isLoading ? "Registering..." : "Register"}
+            </button>
 
-          <span>
-            Already have an account? <Link to="/login">Login here!</Link>
-          </span>
-        </form>
+            <span>
+              Already have an account? <Link to="/login">Login here!</Link>
+            </span>
+          </form>
+        </div>
       </div>
     </>
   );
