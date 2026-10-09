@@ -7,40 +7,159 @@ datasource db {
   provider = "postgresql"
 }
 
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
 
 model Login {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  password  String?  
-  ownerId   Int      @unique
-  owner     User     @relation(fields: [ownerId], references: [id])
-  lastLogin DateTime @default(now()) 
+  password  String?
+  userToken String?  @unique
+  lastLogin DateTime @default(now())
+
+  ownerId Int  @unique
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id            Int       @id @default(autoincrement())
-  first_name    String
-  last_name     String
-  phone_number  String
-  user_type     String      @default("buyer")
-  address       String
-  date_of_birth DateTime
-  approved      Boolean   @default(false)
-  
-  companyId     Int?
-  company       Company?  @relation(fields: [companyId], references: [id])
-  
-  login         Login?
+  id           Int      @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  phoneNumber  String
+  role         String   @default("buyer") // "buyer" | "seller" | "admin"
+  address      String
+  dateOfBirth  DateTime
+  approved     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  login     Login?
+  carts     Cart[]
+  payments  PaymentInfo[]
+  orders    Order[]
+  reviews   Review[]
+  companies UsersToCompany[]
 }
 
 model Company {
-  id           Int      @id @default(autoincrement())
-  name         String   @unique
-  address      String
-  phone_number String
-  
-  sellers      User[]
+  id          Int    @id @default(autoincrement())
+  name        String @unique
+  address     String
+  phoneNumber String // companyContact
+
+  users    UsersToCompany[]
+  products Product[]
+}
+
+model UsersToCompany {
+  userId    Int
+  companyId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, companyId])
+  @@index([companyId])
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  name        String
+  price       Decimal @db.Decimal(10, 2)
+  description String
+  pictureUrl  String?
+  inventory   Int     @default(0)
+
+  companyId Int
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  reviews    Review[]
+  cartItems  CartToProducts[]
+  orderItems OrderItem[]
+
+  @@index([companyId])
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int
+  comment   String?
+  createdAt DateTime @default(now())
+
+  userId    Int
+  productId Int
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId]) // one review per user per product
+  @@index([productId])
+}
+
+model Cart {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  items CartToProducts[]
+
+  @@index([userId])
+}
+
+model CartToProducts {
+  cartId    Int
+  productId Int
+  quantity  Int @default(1)
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([cartId, productId])
+  @@index([productId])
+}
+
+model PaymentInfo {
+  id        Int    @id @default(autoincrement())
+  cardLast4 String
+  cardToken String @unique
+  address   String
+  state     String
+  zip       String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  orderDate       DateTime    @default(now())
+  totalCost       Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(PENDING)
+  shippingAddress String
+
+  userId Int
+  user   User @relation(fields: [userId], references: [id])
+
+  items OrderItem[]
+
+  @@index([userId])
+}
+
+model OrderItem {
+  id              Int     @id @default(autoincrement())
+  quantity        Int
+  priceAtPurchase Decimal @db.Decimal(10, 2)
+
+  orderId   Int
+  productId Int
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
 }
