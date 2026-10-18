@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Container } from "react-bootstrap";
 import { useParams, useNavigate } from "react-router-dom";
@@ -7,12 +7,35 @@ function ProductPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
-  const[isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [currentUser] = useState(() => {
+    const userString = localStorage.getItem("user");
+    if (!userString) return null;
+    try {
+      return JSON.parse(userString);
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      return null;
+    }
+  });
 
   useEffect(() => {
-    const loadProduct = async() => {
+    const loadProduct = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !currentUser) {
+        navigate("/login");
+        return;
+      }
+      if (currentUser.role !== "buyer") {
+        navigate("/");
+        return;
+      }
       try {
-        const response = await fetch(`http://localhost:3000/api/products/${id}`);
+        const response = await fetch(
+          `http://localhost:3000/api/products/${id}`,
+        );
         if (response.ok) {
           const data = await response.json();
           setProduct(data.product);
@@ -24,12 +47,12 @@ function ProductPage() {
       }
     };
     loadProduct();
-  }, [id]);
+  }, [id, navigate, currentUser]);
 
-  if(isLoading) {
+  if (isLoading) {
     return <p>Loading product...</p>;
   }
-  if(!product) {
+  if (!product) {
     return <p>Product not found.</p>;
   }
   return (
@@ -55,7 +78,9 @@ function ProductPage() {
             </div>
             <p style={{ marginTop: "16px" }}>{product.description}</p>
             <p>{product.inventory} in stock</p>
-            <button onClick={() => navigate(`/checkout/${product.id}`)}>Buy now</button>
+            <button onClick={() => navigate(`/checkout/${product.id}`)}>
+              Buy now
+            </button>
           </div>
         </div>
       </Container>

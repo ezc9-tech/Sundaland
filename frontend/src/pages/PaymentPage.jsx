@@ -1,8 +1,10 @@
 import Navbar from "../components/Navbar";
 import { Container } from "react-bootstrap";
-import {useState} from "react";
+import {useEffect, useState} from "react";
+import {useNavigate} from "react-router-dom";
 
 function PaymentPage() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
     nameCard: "",
     cardNum: "",
@@ -12,6 +14,30 @@ function PaymentPage() {
     state: "",
     zip: "",
   });
+
+  const [currentUser] = useState(() => {
+    const userString = localStorage.getItem("user");
+    if (!userString) return null;
+    try {
+      return JSON.parse(userString);
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if(!token || !currentUser) {
+      navigate ("/login");
+      return;
+    }
+    if(currentUser.role !== "buyer") {
+      navigate("/");
+      return;
+    }
+  }, [navigate, currentUser]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

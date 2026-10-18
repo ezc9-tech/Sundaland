@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link,} from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import { Container, Alert } from "react-bootstrap";
 
 function BuyerPage() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -12,8 +13,30 @@ function BuyerPage() {
     product.name.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const [currentUser] = useState(() => {
+    const userString = localStorage.getItem("user");
+    if (!userString) return null;
+    try {
+      return JSON.parse(userString);
+    } catch {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      return null;
+    }
+  });
+
   useEffect(() => {
     const loadProducts = async () => {
+      const token = localStorage.getItem("token");
+      if (!token || !currentUser) {
+        navigate("/login");
+        return;
+      }
+      if (currentUser.role !== "buyer") {
+        navigate ("/");
+        return;
+      }
+      
       try {
         const response = await fetch("http://localhost:3000/api/products");
         const data = await response.json();
@@ -25,7 +48,7 @@ function BuyerPage() {
       }
     };
     loadProducts();
-  }, []);
+  }, [navigate, currentUser]);
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
