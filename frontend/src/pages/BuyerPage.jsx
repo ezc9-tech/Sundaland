@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect} from "react";
 import { useNavigate, Link,} from "react-router-dom";
-import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
-import { Container, Alert } from "react-bootstrap";
+import { Container, Alert, Button } from "react-bootstrap";
 
 function BuyerPage() {
   const navigate = useNavigate();
@@ -54,7 +53,10 @@ function BuyerPage() {
     <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
       <Navbar />
       <Container>
-        <h1 style={{ fontWeight: 700 }}>Shop</h1>
+        <div className="d-flex justify-content-between align-items-center">
+          <h1 style={{ fontWeight: 700 }}>Shop</h1>
+          <Button variant="primary" disabled>View cart</Button>
+        </div>
         <input
           type="search"
           placeholder="Search products"
