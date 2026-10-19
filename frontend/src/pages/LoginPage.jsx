@@ -50,11 +50,8 @@ function LoginPage() {
         case "buyer":
           destination = "/buyer-dashboard";
           break;
-        case "manager":
-          destination = "/manager-dashboard";
-          break;
-        case "user":
-          destination = "/user-profile";
+        case "seller":
+          destination = "/seller-dashboard";
           break;
         default:
           destination = "/"; 
