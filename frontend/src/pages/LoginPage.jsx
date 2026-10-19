@@ -47,6 +47,9 @@ function LoginPage() {
         case "admin":
           destination = "/admin-dashboard";
           break;
+        case "buyer":
+          destination = "/buyer-dashboard";
+          break;
         case "manager":
           destination = "/manager-dashboard";
           break;

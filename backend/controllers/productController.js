@@ -1,8 +1,13 @@
 import { Router } from "express";
-import { createProduct } from "../routes/productRoutes.js";
+import {
+  createProduct,
+  getProducts,
+  getProductById,
+} from "../routes/productRoutes.js";
 
-const productRoutes = Router()
+const productRoutes = Router();
 
 productRoutes.post("/", createProduct);
-
+productRoutes.get("/", getProducts);
+productRoutes.get("/:id", getProductById);
 export default productRoutes;
