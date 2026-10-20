@@ -91,7 +91,8 @@ function BuyerPage() {
                 }}
               >
                 <img
-                  src={product.pictureUrl}
+                  src={product.pictureUrl ||
+          "https://via.placeholder.com/300x200?text=No+Image"}
                   alt={product.name}
                   style={{
                     width: "100%",
