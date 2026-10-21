@@ -3,6 +3,7 @@ import { Container } from "react-bootstrap";
 import {useEffect, useState} from "react";
 import {useNavigate, useParams} from "react-router-dom";
 import toast, {Toaster} from "react-hot-toast";
+import { isValid, isSecurityCodeValid} from 'creditcard.js';
 
 function PaymentPage() {
   const navigate = useNavigate();
@@ -48,7 +49,20 @@ function PaymentPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const formData=new FormData(e.target);
+    const cardNum = formData.get("cardNum");
+    const cvv = formData.get("cvv");
+    if(!isValid(cardNum)) {
+      toast.error("Invalid card number.");
+      return;
+    }
+    if(!isSecurityCodeValid(cardNum, cvv)) {
+      toast.error("cvv doesn't match card.");
+      return;
+    }
     toast.success("Thank you!");
+
+
   };
 
   const inputStyle = {
@@ -92,7 +106,7 @@ function PaymentPage() {
             Card number: <span style={{color: "red"}}>*</span>
             <input
               name="cardNum"
-              placeholder="1234 5678 9876 5432"
+              placeholder="4242 4242 4242 4242"
               required
               style={inputStyle}
             />
@@ -103,6 +117,8 @@ function PaymentPage() {
               name="expire"
               placeholder="10/32"
               required
+              minLength={3}
+              maxLength={5}
               style={inputStyle}
             />
           </label>
@@ -130,6 +146,8 @@ function PaymentPage() {
               name="state"
               placeholder="TX"
               required
+              minLength={2}
+              maxLength={2}
               style={inputStyle}
             />
           </label>
@@ -139,6 +157,8 @@ function PaymentPage() {
               name="zip"
               placeholder="76201"
               required
+              minLength={5}
+              maxLength={9}
               style={inputStyle}
             />
           </label>
