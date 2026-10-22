@@ -74,6 +74,60 @@ async function seedDatabase() {
     },
   });
 
+  const unapprovedSeller1 = await prisma.user.create({
+    data: {
+      firstName: "Sarah",
+      lastName: "Jenkins",
+      phoneNumber: "555-0192",
+      role: "seller",
+      address: "123 Tech Lane, Seattle, WA",
+      dateOfBirth: new Date("1988-04-12"),
+      approved: false,
+      login: {
+        create: {
+          email: "sarah.jenkins@freshmarket.com",
+          password: defaultPassword,
+        },
+      },
+    },
+  });
+
+  const unapprovedSeller2 = await prisma.user.create({
+    data: {
+      firstName: "Marcus",
+      lastName: "Vance",
+      phoneNumber: "555-0234",
+      role: "seller",
+      address: "789 Innovation Dr, Denver, CO",
+      dateOfBirth: new Date("1995-11-20"),
+      approved: false,
+      login: {
+        create: {
+          email: "m.vance@retailhub.net",
+          password: defaultPassword,
+        },
+      },
+    },
+  });
+
+  const unapprovedSeller3 = await prisma.user.create({
+    data: {
+      firstName: "Chloe",
+      lastName: "Price",
+      phoneNumber: "555-0456",
+      role: "seller",
+      address: "321 Commerce St, New York, NY",
+      dateOfBirth: new Date("1990-02-15"),
+      approved: false,
+      login: {
+        create: {
+          email: "chloe.price@urbanwares.com",
+          password: defaultPassword,
+        },
+      },
+    },
+  });
+
   const approvedBuyer = await prisma.user.create({
     data: {
       firstName: "Bob",
@@ -172,6 +226,29 @@ async function seedDatabase() {
       price: 150.0,
       description: "Works great, minor scratches.",
       inventory: 10,
+      approved: false,
+      companyId: davesDiscount.id,
+    },
+  });
+
+  const smartRing = await prisma.product.create({
+    data: {
+      name: "Beta Smart Ring",
+      price: 129.99,
+      description:
+        "Fitness tracking smart ring. Pending final quality control.",
+      inventory: 20,
+      approved: false,
+      companyId: techCompany.id, 
+    },
+  });
+
+  const usedMonitor = await prisma.product.create({
+    data: {
+      name: "24-inch Monitor (Used)",
+      price: 45.0,
+      description: "No dead pixels, comes with power cable only. Unboxed.",
+      inventory: 8,
       approved: false,
       companyId: davesDiscount.id,
     },

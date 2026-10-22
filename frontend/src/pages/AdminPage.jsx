@@ -2,15 +2,23 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
-import UserCard from "../components/UserCard";
-import ProductCard from "../components/ProductCard";
-import { Container, Row, Col, Spinner, Alert } from "react-bootstrap";
+import { Container, Spinner, Alert } from "react-bootstrap";
+import UserTable from "../components/UserTable";
+import ProductsTable from "../components/ProductsTable";
+import PaginationBar from "../components/PaginationBar";
+import SearchBar from "../components/SearchBar";
 
 function AdminPage() {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [userSearch, setUserSearch] = useState("");
+  const [productSearch, setProductSearch] = useState("");
+
+  const [userPage, setUserPage] = useState(1);
+  const [productPage, setProductPage] = useState(1);
+  const itemsPerPage = 6;
 
   const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -158,6 +166,35 @@ function AdminPage() {
     }
   };
 
+  const matchSearch = (item, searchString) => {
+    if (!searchString) return true;
+    const lowerSearch = searchString.toLowerCase();
+    return Object.values(item).some(
+      (val) =>
+        val !== null &&
+        val !== undefined &&
+        String(val).toLowerCase().includes(lowerSearch),
+    );
+  };
+
+  const filteredUsers = pendingUsers.filter((user) =>
+    matchSearch(user, userSearch),
+  );
+  const totalUserPages = Math.ceil(filteredUsers.length / itemsPerPage);
+  const currentUsers = filteredUsers.slice(
+    (userPage - 1) * itemsPerPage,
+    userPage * itemsPerPage,
+  );
+
+  const filteredProducts = pendingProducts.filter((product) =>
+    matchSearch(product, productSearch),
+  );
+  const totalProductPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const currentProducts = filteredProducts.slice(
+    (productPage - 1) * itemsPerPage,
+    productPage * itemsPerPage,
+  );
+
   return (
     <div className="bg-light min-vh-100">
       <Navbar />
@@ -166,7 +203,7 @@ function AdminPage() {
       <Container className="py-5">
         <div className="mb-5 border-bottom pb-3">
           <h1 className="fw-bold">Admin Dashboard</h1>
-          <p className="text-muted">Manage approvals</p>
+          <p className="text-muted">Manage system approvals efficiently</p>
         </div>
 
         {isLoading ? (
@@ -177,44 +214,76 @@ function AdminPage() {
         ) : (
           <>
             <section className="mb-5">
-              <h3 className="h4 mb-4">Pending Accounts</h3>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 mb-0">Pending Accounts</h3>
+                <SearchBar
+                  placeholder="Search users..."
+                  value={userSearch}
+                  onChange={(e) => {
+                    setUserSearch(e.target.value);
+                    setUserPage(1);
+                  }}
+                />
+              </div>
+
               {pendingUsers.length === 0 ? (
                 <Alert variant="info" className="border-0 shadow-sm">
                   No accounts waiting for approval.
                 </Alert>
+              ) : currentUsers.length === 0 ? (
+                <Alert variant="warning" className="border-0 shadow-sm">
+                  No accounts match your search.
+                </Alert>
               ) : (
-                <Row xs={1} md={2} lg={3} className="g-4">
-                  {pendingUsers.map((user) => (
-                    <Col key={user.id}>
-                      <UserCard
-                        user={user}
-                        onApprove={handleApproveUser}
-                        onDeny={handleDenyUser}
-                      />
-                    </Col>
-                  ))}
-                </Row>
+                <>
+                  <UserTable
+                    users={currentUsers}
+                    onApprove={handleApproveUser}
+                    onDeny={handleDenyUser}
+                  />
+                  <PaginationBar
+                    currentPage={userPage}
+                    totalPages={totalUserPages}
+                    onPageChange={setUserPage}
+                  />
+                </>
               )}
             </section>
 
             <section>
-              <h3 className="h4 mb-4">Pending Products</h3>
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 mb-0">Pending Products</h3>
+                <SearchBar
+                  placeholder="Search products..."
+                  value={productSearch}
+                  onChange={(e) => {
+                    setProductSearch(e.target.value);
+                    setProductPage(1);
+                  }}
+                />
+              </div>
+
               {pendingProducts.length === 0 ? (
                 <Alert variant="info" className="border-0 shadow-sm">
                   No products waiting for approval.
                 </Alert>
+              ) : currentProducts.length === 0 ? (
+                <Alert variant="warning" className="border-0 shadow-sm">
+                  No products match your search.
+                </Alert>
               ) : (
-                <Row xs={1} md={2} lg={3} className="g-4">
-                  {pendingProducts.map((product) => (
-                    <Col key={product.id}>
-                      <ProductCard
-                        product={product}
-                        onApprove={handleApproveProduct}
-                        onDeny={handleDenyProduct}
-                      />
-                    </Col>
-                  ))}
-                </Row>
+                <>
+                  <ProductsTable
+                    products={currentProducts}
+                    onApprove={handleApproveProduct}
+                    onDeny={handleDenyProduct}
+                  />
+                  <PaginationBar
+                    currentPage={productPage}
+                    totalPages={totalProductPages}
+                    onPageChange={setProductPage}
+                  />
+                </>
               )}
             </section>
           </>
