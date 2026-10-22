@@ -36,6 +36,10 @@ export async function login(req, res) {
         });
     }
 
+    if (!existingUser.isActive) {
+      return res.status(403).json({ error: "This account has been disabled." });
+    }
+
     const isPasswordValid = await bcrypt.compare(
       password,
       existingUser.login.password,

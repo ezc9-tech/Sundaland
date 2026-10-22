@@ -11,13 +11,19 @@ import SearchBar from "../components/SearchBar";
 function AdminPage() {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
+  const [approvedUsers, setApprovedUsers] = useState([]);
+  const [approvedProducts, setApprovedProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
+  const [approvedUserSearch, setApprovedUserSearch] = useState("");
+  const [approvedProductSearch, setApprovedProductSearch] = useState("");
 
   const [userPage, setUserPage] = useState(1);
   const [productPage, setProductPage] = useState(1);
+  const [approvedUserPage, setApprovedUserPage] = useState(1);
+  const [approvedProductPage, setApprovedProductPage] = useState(1);
   const itemsPerPage = 6;
 
   const [currentUser] = useState(() => {
@@ -50,24 +56,47 @@ function AdminPage() {
       try {
         const headers = { Authorization: `Bearer ${token}` };
 
-        const [usersRes, productsRes] = await Promise.all([
+        const [
+          usersRes,
+          productsRes,
+          approvedUsersRes,
+          approvedProductsRes,
+        ] = await Promise.all([
           fetch("http://localhost:3000/api/admin/unapproved-users", {
             headers,
           }),
           fetch("http://localhost:3000/api/admin/unapproved-products", {
             headers,
           }),
+          fetch("http://localhost:3000/api/admin/approved-users", {
+            headers,
+          }),
+          fetch("http://localhost:3000/api/admin/approved-products", {
+            headers,
+          }),
         ]);
 
-        if (!usersRes.ok || !productsRes.ok) {
-          throw new Error("Failed to fetch pending data");
+        if (
+          !usersRes.ok ||
+          !productsRes.ok ||
+          !approvedUsersRes.ok ||
+          !approvedProductsRes.ok
+        ) {
+          throw new Error("Failed to fetch admin data");
         }
 
-        const usersData = await usersRes.json();
-        const productsData = await productsRes.json();
+        const [usersData, productsData, approvedUsersData, approvedProductsData] =
+          await Promise.all([
+            usersRes.json(),
+            productsRes.json(),
+            approvedUsersRes.json(),
+            approvedProductsRes.json(),
+          ]);
 
         setPendingUsers(usersData.unapprovedUsers || []);
         setPendingProducts(productsData.unapprovedProducts || []);
+        setApprovedUsers(approvedUsersData.approvedUsers || []);
+        setApprovedProducts(approvedProductsData.approvedProducts || []);
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -166,6 +195,60 @@ function AdminPage() {
     }
   };
 
+  const handleToggleUserActive = async (userId, isActive) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/admin/users/${userId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isActive }),
+        },
+      );
+      if (!response.ok) throw new Error("Failed to update user status");
+
+      setApprovedUsers((users) =>
+        users.map((user) => (user.id === userId ? { ...user, isActive } : user)),
+      );
+      toast.success(`User ${isActive ? "enabled" : "disabled"} successfully.`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleToggleProductActive = async (productId, isActive) => {
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/admin/products/${productId}/status`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ isActive }),
+        },
+      );
+      if (!response.ok) throw new Error("Failed to update product status");
+
+      setApprovedProducts((products) =>
+        products.map((product) =>
+          product.id === productId ? { ...product, isActive } : product,
+        ),
+      );
+      toast.success(
+        `Product ${isActive ? "enabled" : "disabled"} successfully.`,
+      );
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const matchSearch = (item, searchString) => {
     if (!searchString) return true;
     const lowerSearch = searchString.toLowerCase();
@@ -193,6 +276,28 @@ function AdminPage() {
   const currentProducts = filteredProducts.slice(
     (productPage - 1) * itemsPerPage,
     productPage * itemsPerPage,
+  );
+
+  const filteredApprovedUsers = approvedUsers.filter((user) =>
+    matchSearch(user, approvedUserSearch),
+  );
+  const totalApprovedUserPages = Math.ceil(
+    filteredApprovedUsers.length / itemsPerPage,
+  );
+  const currentApprovedUsers = filteredApprovedUsers.slice(
+    (approvedUserPage - 1) * itemsPerPage,
+    approvedUserPage * itemsPerPage,
+  );
+
+  const filteredApprovedProducts = approvedProducts.filter((product) =>
+    matchSearch(product, approvedProductSearch),
+  );
+  const totalApprovedProductPages = Math.ceil(
+    filteredApprovedProducts.length / itemsPerPage,
+  );
+  const currentApprovedProducts = filteredApprovedProducts.slice(
+    (approvedProductPage - 1) * itemsPerPage,
+    approvedProductPage * itemsPerPage,
   );
 
   return (
@@ -282,6 +387,80 @@ function AdminPage() {
                     currentPage={productPage}
                     totalPages={totalProductPages}
                     onPageChange={setProductPage}
+                  />
+                </>
+              )}
+            </section>
+
+            <section className="mt-5">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 mb-0">Approved Users</h3>
+                <SearchBar
+                  placeholder="Search approved users..."
+                  value={approvedUserSearch}
+                  onChange={(e) => {
+                    setApprovedUserSearch(e.target.value);
+                    setApprovedUserPage(1);
+                  }}
+                />
+              </div>
+
+              {approvedUsers.length === 0 ? (
+                <Alert variant="info" className="border-0 shadow-sm">
+                  No approved users.
+                </Alert>
+              ) : currentApprovedUsers.length === 0 ? (
+                <Alert variant="warning" className="border-0 shadow-sm">
+                  No approved users match your search.
+                </Alert>
+              ) : (
+                <>
+                  <UserTable
+                    users={currentApprovedUsers}
+                    onToggleActive={handleToggleUserActive}
+                    readOnly
+                  />
+                  <PaginationBar
+                    currentPage={approvedUserPage}
+                    totalPages={totalApprovedUserPages}
+                    onPageChange={setApprovedUserPage}
+                  />
+                </>
+              )}
+            </section>
+
+            <section className="mt-5">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 mb-0">Approved Products</h3>
+                <SearchBar
+                  placeholder="Search approved products..."
+                  value={approvedProductSearch}
+                  onChange={(e) => {
+                    setApprovedProductSearch(e.target.value);
+                    setApprovedProductPage(1);
+                  }}
+                />
+              </div>
+
+              {approvedProducts.length === 0 ? (
+                <Alert variant="info" className="border-0 shadow-sm">
+                  No approved products.
+                </Alert>
+              ) : currentApprovedProducts.length === 0 ? (
+                <Alert variant="warning" className="border-0 shadow-sm">
+                  No approved products match your search.
+                </Alert>
+              ) : (
+                <>
+                  <ProductsTable
+                    products={currentApprovedProducts}
+                    onToggleActive={handleToggleProductActive}
+                    readOnly
+                  />
+                  <PaginationBar
+                    currentPage={approvedProductPage}
+                    totalPages={totalApprovedProductPages}
+                    onPageChange={setApprovedProductPage}
                   />
                 </>
               )}
