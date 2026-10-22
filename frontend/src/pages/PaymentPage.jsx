@@ -47,11 +47,14 @@ function PaymentPage() {
   }, [id, navigate, currentUser]);
 
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData=new FormData(e.target);
     const cardNum = formData.get("cardNum");
     const cvv = formData.get("cvv");
+    const address = formData.get("address");
+    const state = formData.get("state");
+    const zip = formData.get("zip");
     if(!isValid(cardNum)) {
       toast.error("Invalid card number.");
       return;
@@ -60,7 +63,30 @@ function PaymentPage() {
       toast.error("cvv doesn't match card.");
       return;
     }
-    toast.success("Thank you!");
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:3000/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          productId: product.id,
+          shippingAddress: `${address}, ${state}, ${zip}`,
+        }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to place order");
+      }
+      toast.success("Thank you! Your order was placed.");
+      setTimeout(() => {
+        navigate("/buyer-dashboard");
+      }, 2000);
+    } catch (error) {
+      toast.error(error.message);
+    }
 
 
   };
@@ -162,7 +188,7 @@ function PaymentPage() {
               style={inputStyle}
             />
           </label>
-          <button type="submit">Save payment info</button>
+          <button type="submit">Submit payment info and place order</button>
         </form>
       </Container>
     </div>
