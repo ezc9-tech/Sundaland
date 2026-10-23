@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken";
+import { prisma } from "../utils/prisma.ts";
 
-export const verifyToken = (req, res, next) => {
+export const verifyToken = async (req, res, next) => {
+  let decoded;
   try {
     const authHeader = req.headers.authorization;
 
@@ -12,13 +14,26 @@ export const verifyToken = (req, res, next) => {
 
     const token = authHeader.split(" ")[1];
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    req.user = decoded;
-
-    next();
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (error) {
     return res.status(401).json({ error: "Invalid or expired token." });
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      return res.status(403).json({ error: "This account has been disabled." });
+    }
+
+    req.user = decoded;
+    next();
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "There was an internal server error" });
   }
 };
 

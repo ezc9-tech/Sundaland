@@ -23,6 +23,26 @@ export async function getUnapprovedUsers(req, res) {
   }
 }
 
+export async function getApprovedUsers(req, res) {
+  try {
+    const approvedUsers = await prisma.user.findMany({
+      where: { approved: true },
+      include: {
+        login: {
+          select: {
+            email: true,
+          },
+        },
+      },
+    });
+
+    return res.status(200).json({ approvedUsers });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
 export async function approveUser(req, res) {
   try {
     const { id } = req.params;
@@ -58,6 +78,32 @@ export async function approveUser(req, res) {
   }
 }
 
+export async function setUserActiveStatus(req, res) {
+  const id = Number.parseInt(req.params.id, 10);
+  const { isActive } = req.body ?? {};
+
+  if (!Number.isInteger(id) || id <= 0 || typeof isActive !== "boolean") {
+    return res.status(400).json({ error: "A valid user ID and isActive status are required" });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { isActive },
+    });
+
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
 export async function getUnapprovedProducts(req, res) {
   try {
     const unapprovedProducts = await prisma.product.findMany({
@@ -68,6 +114,22 @@ export async function getUnapprovedProducts(req, res) {
     });
 
     return res.status(200).json({ unapprovedProducts });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
+export async function getApprovedProducts(req, res) {
+  try {
+    const approvedProducts = await prisma.product.findMany({
+      where: { approved: true },
+      include: {
+        company: true,
+      }
+    });
+
+    return res.status(200).json({ approvedProducts });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "There was an internal server error" });
@@ -107,5 +169,32 @@ export async function approveProduct(req, res) {
     }
 
     res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
+export async function setProductActiveStatus(req, res) {
+  const id = Number.parseInt(req.params.id, 10);
+  const { isActive } = req.body ?? {};
+
+  if (!Number.isInteger(id) || id <= 0 || typeof isActive !== "boolean") {
+    return res.status(400).json({ error: "A valid product ID and isActive status are required" });
+  }
+
+  try {
+    const product = await prisma.product.update({
+      where: { id },
+      data: { isActive },
+      include: { company: true },
+    });
+
+    return res.status(200).json({ product });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    return res.status(500).json({ error: "There was an internal server error" });
   }
 }

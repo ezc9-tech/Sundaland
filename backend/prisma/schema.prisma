@@ -35,6 +35,7 @@ model User {
   address      String
   dateOfBirth  DateTime
   approved     Boolean  @default(false)
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -74,6 +75,7 @@ model Product {
   pictureUrl  String?
   inventory   Int     @default(0)
   approved    Boolean @default(false)
+  isActive    Boolean @default(true)
 
   companyId Int
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)

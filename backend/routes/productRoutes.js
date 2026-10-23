@@ -22,7 +22,7 @@ function ownedBy(user) {
 export async function getProducts(req, res) {
   try {
     const products = await prisma.product.findMany({
-      where: { approved: true },
+      where: { approved: true, isActive: true },
       include: { company: { select: { name: true } } },
     });
     return res.status(200).json({ products });
@@ -39,7 +39,7 @@ export async function getProductById(req, res) {
       return res.status(400).json({ error: "Invalid product id" });
     }
     const product = await prisma.product.findFirst({
-      where: { id, approved: true },
+      where: { id, approved: true, isActive: true },
       include: { company: { select: { name: true } } },
     });
     if (!product) {

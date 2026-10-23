@@ -12,7 +12,7 @@ export async function createOrder(req,res) {
             return res.status(400).json({error: "productId and shippingAddress are required"});
         }
         const product = await prisma.product.findFirst({
-            where: {id: productId, approved: true},
+            where: {id: productId, approved: true, isActive: true},
         });
         if (!product) {
             return res.status(404).json({error: "Product not found"});

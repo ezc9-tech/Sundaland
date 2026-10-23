@@ -1,6 +1,12 @@
-import { Table, Button } from "react-bootstrap";
+import { Table, Button, Badge } from "react-bootstrap";
 
-export default function ProductsTable({ products, onApprove, onDeny }) {
+export default function ProductsTable({
+  products,
+  onApprove,
+  onDeny,
+  onToggleActive,
+  readOnly = false,
+}) {
   return (
     <Table
       responsive
@@ -12,6 +18,7 @@ export default function ProductsTable({ products, onApprove, onDeny }) {
           <th>Product Name</th>
           <th>Price</th>
           <th>Inventory</th>
+          {readOnly && <th>Status</th>}
           <th className="text-end">Actions</th>
         </tr>
       </thead>
@@ -30,24 +37,48 @@ export default function ProductsTable({ products, onApprove, onDeny }) {
             </td>
             <td>${Number(product.price).toFixed(2)}</td>
             <td>{product.inventory}</td>
-            <td className="text-end">
-              <Button
-                variant="success"
-                size="sm"
-                className="me-2 fw-medium"
-                onClick={() => onApprove(product.id)}
-              >
-                Approve
-              </Button>
-              <Button
-                variant="outline-danger"
-                size="sm"
-                className="fw-medium"
-                onClick={() => onDeny(product.id)}
-              >
-                Deny
-              </Button>
-            </td>
+            {readOnly && (
+              <td>
+                <Badge bg={product.isActive ? "success" : "secondary"}>
+                  {product.isActive ? "Active" : "Disabled"}
+                </Badge>
+              </td>
+            )}
+            {readOnly ? (
+              <td className="text-end">
+                <Button
+                  variant={
+                    product.isActive ? "outline-danger" : "outline-success"
+                  }
+                  size="sm"
+                  className="fw-medium"
+                  onClick={() =>
+                    onToggleActive(product.id, !product.isActive)
+                  }
+                >
+                  {product.isActive ? "Disable" : "Enable"}
+                </Button>
+              </td>
+            ) : (
+              <td className="text-end">
+                <Button
+                  variant="success"
+                  size="sm"
+                  className="me-2 fw-medium"
+                  onClick={() => onApprove(product.id)}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="outline-danger"
+                  size="sm"
+                  className="fw-medium"
+                  onClick={() => onDeny(product.id)}
+                >
+                  Deny
+                </Button>
+              </td>
+            )}
           </tr>
         ))}
       </tbody>
