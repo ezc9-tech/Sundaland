@@ -10,7 +10,7 @@ const EMPTY_FORM = {
   description: "",
   pictureUrl: "",
   inventory: "0",
-  companyId: "", // TEMPORARY
+  companyName: "",
 };
 
 function CreateProductPage() {
@@ -63,7 +63,7 @@ function CreateProductPage() {
           description: form.description.trim(),
           pictureUrl: form.pictureUrl.trim() || undefined,
           inventory: Number(form.inventory),
-          companyId: Number(form.companyId),
+          companyName: form.companyName.trim(),
         }),
       });
 
@@ -173,17 +173,21 @@ function CreateProductPage() {
                       />
                     </Form.Group>
 
-                    {/*TEMPORARY*/}
-                    <Form.Group className="mb-4" controlId="companyId">
-                      <Form.Label>Company ID</Form.Label>
+                    <Form.Group className="mb-4" controlId="companyName">
+                      <Form.Label>Company Name</Form.Label>
                       <Form.Control
-                        type="number"
-                        name="companyId"
-                        value={form.companyId}
+                        type="text"
+                        name="companyName"
+                        value={form.companyName}
                         onChange={handleChange}
-                        min="1"
+                        maxLength={100}
+                        pattern="[A-Za-z0-9 ]+"
+                        title="Letters, numbers, and spaces only"
                         required
                       />
+                      <Form.Text muted>
+                        A new company is created if this name doesn't exist yet.
+                      </Form.Text>
                     </Form.Group>
 
                     <div className="d-grid">
