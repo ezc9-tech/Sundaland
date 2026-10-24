@@ -75,6 +75,7 @@ function CreateProductPage() {
 
       toast.success("Listing created! It will appear once approved.");
       setForm(EMPTY_FORM);
+      setTimeout(() => navigate("/seller-dashboard"), 800);
     } catch (error) {
       toast.error(error.message);
     } finally {
