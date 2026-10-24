@@ -4,6 +4,8 @@ import RegisterPage from "./pages/RegisterPage";
 import ConstructionPage from "./pages/UnderConstructionPage";
 import AdminPage from "./pages/AdminPage";
 import CreateProductPage from "./pages/CreateProductPage";
+import EditProductPage from "./pages/EditProductPage";
+import SellerDashboardPage from "./pages/SellerPage";
 import BuyerPage from "./pages/BuyerPage";
 import ProductPage from "./pages/ProductPage";
 import PaymentPage from "./pages/PaymentPage";
@@ -16,7 +18,9 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/admin-dashboard" element={<AdminPage />} />
         <Route path="*" element={<ConstructionPage />} />
-        <Route path="/seller-dashboard" element={<CreateProductPage />} />
+        <Route path="/seller-dashboard" element={<SellerDashboardPage />} />
+        <Route path="/create-listing" element={<CreateProductPage />} />
+        <Route path="/products/:id/edit-listing" element={<EditProductPage />} />
         <Route path="/buyer-dashboard" element={<BuyerPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/checkout/:id" element={<PaymentPage/>} />
