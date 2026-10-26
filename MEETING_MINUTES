@@ -22,3 +22,20 @@ Will will finish up class diagram
 Josh will work on db part
 Zane worked on frontend login/registration page
 Jake will help where needed
+
+(10/6/26)
+Login, register, and basic admin pages were made.
+Buyer and seller pages under construction
+
+Josh: will work on seller and db functionality
+Jake: will work on buyer functionality (backend/frontend)
+Zane: will work on admin functionality (backend/frontend)
+Will: will work on buyer functionality (frontend)
+
+(10/15/26)
+Fully functional admin page and functional create product page and db
+
+Josh: will finish up seller functionality (edit and remove listing)
+Jake: will finish buyer functionality
+Zane: will work on routes and middleware
+Will: will help finish buyer frontend
