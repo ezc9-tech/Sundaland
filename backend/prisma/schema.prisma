@@ -167,6 +167,3 @@ model OrderItem {
   @@index([productId])
 }
 
-model BlockedUsers {
-  id INT
-}

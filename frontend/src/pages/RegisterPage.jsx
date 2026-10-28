@@ -190,7 +190,6 @@ function RegisterPage() {
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                 >
-                  <option value="admin">Admin</option>
                   <option value="buyer">Buyer</option>
                   <option value="seller">Seller</option>
                 </Form.Select>
