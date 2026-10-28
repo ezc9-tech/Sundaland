@@ -198,3 +198,92 @@ export async function setProductActiveStatus(req, res) {
     return res.status(500).json({ error: "There was an internal server error" });
   }
 }
+
+
+export async function denyUser(req, res) {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "A valid user ID is required" });
+  }
+
+  try {
+    await prisma.user.delete({ where: { id } });
+
+    return res.status(200).json({ message: "User denied and removed" });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    return res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
+export async function denyProduct(req, res) {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({ error: "A valid product ID is required" });
+  }
+
+  try {
+    const orderCount = await prisma.orderItem.count({ where: { productId: id } });
+    if (orderCount > 0) {
+      return res.status(409).json({
+        error: "This product has been ordered before and can't be deleted. Set its inventory to 0 instead.",
+      });
+    }
+
+    await prisma.$transaction([
+      prisma.cartToProducts.deleteMany({ where: { productId: id } }),
+      prisma.review.deleteMany({ where: { productId: id } }),
+      prisma.product.delete({ where: { id } }),
+    ]);
+
+    return res.status(200).json({ message: "Product denied and removed" });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "P2003") {
+      return res.status(409).json({
+        error: "This product can't be deleted because other records still reference it.",
+      });
+    }
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    return res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
+export async function setAccountInactive(req, res) {
+  const id = Number.parseInt(req.params.id, 10);
+  const { isActive } = req.body ?? {};
+
+  if (!Number.isInteger(id) || id <= 0 || typeof isActive !== "boolean") {
+    return res.status(400).json({ error: "A valid product ID and isActive status are required" });
+  }
+
+  try {
+    const user = await prisma.user.update({
+      where: { id },
+      data: { isActive: false },
+      include: { company: true },
+    });
+
+    return res.status(200).json({ product });
+  } catch (error) {
+    console.error(error);
+
+    if (error.code === "P2025") {
+      return res.status(404).json({ error: "Product " });
+    }
+
+    return res.status(500).json({ error: "There was an internal server error" });
+  }
+}
