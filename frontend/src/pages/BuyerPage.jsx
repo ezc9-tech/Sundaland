@@ -55,6 +55,9 @@ function BuyerPage() {
       <Container>
         <div className="d-flex justify-content-between align-items-center">
           <h1 style={{ fontWeight: 700 }}>Shop</h1>
+          <Button variant="primary" onClick={() => navigate("/orders")}>
+            My orders
+          </Button>
           <Button variant="primary" disabled>View cart</Button>
         </div>
         <input
