@@ -47,3 +47,23 @@ export async function createOrder(req,res) {
         res.status(500).json({error: "There was an internal server error"});
     }
 }
+export async function getOrders(req,res) {
+    try {
+        if (req.user.role !== "buyer") {
+            return res.status(403).json({error: "Only buyers have an order history"});
+        }
+        const orders = await prisma.order.findMany({
+            where: {userId: req.user.userId},
+            orderBy: {orderDate: "desc"},
+            include: {
+                items: {
+                    include: {product: {select: {name: true}}},
+                },
+            },
+        });
+        return res.status(200).json({orders});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error: "There was an internal service error"});
+    }
+}
