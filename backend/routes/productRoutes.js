@@ -1,6 +1,7 @@
 import { prisma } from "../utils/prisma.ts";
 import dotenv from "dotenv";
 import { validateProductName, validateProductDescription } from "../utils/validateText.js";
+import { listingSnapshot, recordListingAudit } from "../utils/listingAudit.js";
 
 dotenv.config();
 
@@ -137,15 +138,27 @@ export async function createProduct(req, res) {
       }
     }
 
-    const product = await prisma.product.create({
-      data: {
-        name,
-        price: parsedPrice,
-        description,
-        pictureUrl: pictureUrl ?? null,
-        inventory: parsedInventory,
-        companyId: company.id,
-      },
+    const product = await prisma.$transaction(async (transaction) => {
+      const createdProduct = await transaction.product.create({
+        data: {
+          name,
+          price: parsedPrice,
+          description,
+          pictureUrl: pictureUrl ?? null,
+          inventory: parsedInventory,
+          companyId: company.id,
+        },
+        include: { company: true },
+      });
+
+      await recordListingAudit(transaction, {
+        product: createdProduct,
+        actor: req.user,
+        action: "CREATED",
+        currentData: listingSnapshot(createdProduct),
+      });
+
+      return createdProduct;
     });
 
     return res
@@ -245,21 +258,37 @@ export async function updateProduct(req, res) {
       return res.status(400).json({ error: "No valid fields to update" });
     }
 
-    const existing = await prisma.product.findFirst({
-      where: { id, ...ownedBy(req.user) },
-    });
-
-    if (!existing) {
-      return res.status(404).json({ error: "Product not found" });
-    }
-
     if (req.user.role !== "admin" && (data.name !== undefined || data.description !== undefined)) {
       data.approved = false;
     }
 
-    const product = await prisma.product.update({
-      where: { id },
-      data,
+    const product = await prisma.$transaction(async (transaction) => {
+      const existing = await transaction.product.findFirst({
+        where: { id, ...ownedBy(req.user) },
+        include: { company: true },
+      });
+
+      if (!existing) {
+        const error = new Error("Product not found");
+        error.code = "P2025";
+        throw error;
+      }
+
+      const updatedProduct = await transaction.product.update({
+        where: { id },
+        data,
+        include: { company: true },
+      });
+
+      await recordListingAudit(transaction, {
+        product: updatedProduct,
+        actor: req.user,
+        action: "UPDATED",
+        previousData: listingSnapshot(existing),
+        currentData: listingSnapshot(updatedProduct),
+      });
+
+      return updatedProduct;
     });
 
     return res.status(200).json({ message: "Product updated successfully", product });
@@ -283,6 +312,7 @@ export async function deleteProduct(req, res) {
 
     const existing = await prisma.product.findFirst({
       where: { id, ...ownedBy(req.user) },
+      include: { company: true },
     });
 
     if (!existing) {
@@ -296,11 +326,17 @@ export async function deleteProduct(req, res) {
       });
     }
 
-    await prisma.$transaction([
-      prisma.cartToProducts.deleteMany({ where: { productId: id } }),
-      prisma.review.deleteMany({ where: { productId: id } }),
-      prisma.product.delete({ where: { id } }),
-    ]);
+    await prisma.$transaction(async (transaction) => {
+      await recordListingAudit(transaction, {
+        product: existing,
+        actor: req.user,
+        action: "DELETED",
+        previousData: listingSnapshot(existing),
+      });
+      await transaction.cartToProducts.deleteMany({ where: { productId: id } });
+      await transaction.review.deleteMany({ where: { productId: id } });
+      await transaction.product.delete({ where: { id } });
+    });
 
     return res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
