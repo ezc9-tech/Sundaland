@@ -25,7 +25,7 @@ function ProductPage() {
     const loadProduct = async () => {
       const token = localStorage.getItem("token");
       if (!token || !currentUser) {
-        navigate("/login");
+        navigate("/login", { state: { from: `/product/${id}` } });
         return;
       }
       if (currentUser.role !== "buyer") {

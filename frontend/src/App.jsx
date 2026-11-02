@@ -21,7 +21,7 @@ function App() {
         <Route path="/seller-dashboard" element={<SellerDashboardPage />} />
         <Route path="/create-listing" element={<CreateProductPage />} />
         <Route path="/products/:id/edit-listing" element={<EditProductPage />} />
-        <Route path="/buyer-dashboard" element={<BuyerPage />} />
+        <Route path="/" element={<BuyerPage />} />
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/checkout/:id" element={<PaymentPage/>} />
       </Routes>

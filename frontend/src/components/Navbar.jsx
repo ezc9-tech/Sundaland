@@ -41,14 +41,35 @@ function Navbar() {
                 Welcome, {user.first_name || user.firstName}
               </BootstrapNavbar.Text>
             )}
-            <Button
-              variant="outline-danger"
-              size="sm"
-              onClick={handleLogout}
-              className="px-4 fw-semibold mt-2 mt-sm-0"
-            >
-              Logout
-            </Button>
+            {user ? (
+              <Button
+                variant="outline-danger"
+                size="sm"
+                onClick={handleLogout}
+                className="px-4 fw-semibold mt-2 mt-sm-0"
+              >
+                Logout
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="outline-primary"
+                  size="sm"
+                  onClick={() => navigate("/login")}
+                  className="px-4 fw-semibold mt-2 mt-sm-0 me-2"
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate("/register")}
+                  className="px-4 fw-semibold mt-2 mt-sm-0"
+                >
+                  Register
+                </Button>
+              </>
+            )}
           </Nav>
         </BootstrapNavbar.Collapse>
       </Container>

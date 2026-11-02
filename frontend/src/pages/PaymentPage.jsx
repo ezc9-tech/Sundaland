@@ -82,7 +82,7 @@ function PaymentPage() {
       }
       toast.success("Thank you! Your order was placed.");
       setTimeout(() => {
-        navigate("/buyer-dashboard");
+        navigate("/");
       }, 2000);
     } catch (error) {
       toast.error(error.message);
