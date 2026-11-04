@@ -1,7 +1,7 @@
 import Navbar from "../components/Navbar";
 import { Container } from "react-bootstrap";
 import {useEffect, useState} from "react";
-import {useNavigate, useParams} from "react-router-dom";
+import {useNavigate, useParams, useSearchParams} from "react-router-dom";
 import toast, {Toaster} from "react-hot-toast";
 import { isValid, isSecurityCodeValid} from 'creditcard.js';
 
@@ -9,6 +9,8 @@ function PaymentPage() {
   const navigate = useNavigate();
   const {id} = useParams();
   const [product, setProduct] = useState();
+  const [searchParams] = useSearchParams();
+  const quantity = parseInt(searchParams.get("quantity")) || 1;
 
   const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -73,6 +75,7 @@ function PaymentPage() {
         },
         body: JSON.stringify({
           productId: product.id,
+          quantity,
           shippingAddress: `${address}, ${state}, ${zip}`,
         }),
       });
@@ -108,7 +111,7 @@ function PaymentPage() {
       <Toaster position="top-center"/>
       <Container>
         <h1 style={{ fontWeight: 700 }}>Payment info</h1>
-        <p style={{fontWeight:600}}>Buying {product.name}, ${Number(product.price).toFixed(2)}</p>
+        <p style={{fontWeight:600}}>Buying {quantity} x {product.name}, total ${Number(product.price * quantity).toFixed(2)}</p>
         <p><span style={{color: "red"}}>*</span> indicates a required field.</p>
         <form
           onSubmit={handleSubmit}
