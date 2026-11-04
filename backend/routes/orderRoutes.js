@@ -72,3 +72,31 @@ export async function getOrders(req,res) {
         res.status(500).json({error: "There was an internal service error"});
     }
 }
+
+export async function requestRefund(req,res) {
+    try {
+        if (req.user.role !== "buyer") {
+            return res.status(403).json({error: "Only buyers can request a refund"});
+        }
+        const orderId = parseInt(req.params.id);
+        if(Number.isNaN(orderId)) {
+            return res.status(400).json({error: "Invalid order ID"});
+        }
+        const order = await prisma.order.findFirst({
+            where: {id: orderId, userId: req.user.userId},
+        });
+        if(!order) {
+            return res.status(404).json({error: "Order not found"});
+        }
+        if (!["PAID", "SHIPPED", "DELIVERED"].includes(order.status)) {
+            return res.status(409).json({error: "Order cannot be refunded"});
+        }
+        await prisma.order.update({
+            where: {id: orderId}, data: {status: "REFUND_REQUESTED"},
+        });
+        return res.status(200).json({message: "Refund requested"});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error: "There was an internal service error"});
+    }
+}
