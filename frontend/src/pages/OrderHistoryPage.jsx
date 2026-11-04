@@ -4,6 +4,7 @@ import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import toast, {Toaster} from "react-hot-toast";
 
+const refundable = ["PAID", "SHIPPED", "DELIVERED"];
 function OrderHistoryPage() {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
@@ -49,6 +50,26 @@ function OrderHistoryPage() {
         };
         loadOrders();
     }, [navigate, currentUser]);
+    const handleRefund = async (orderId) => {
+        if(!window.confirm("Confirm refund request for this order?")) return;
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:3000/api/orders/${orderId}/refund`, {
+                method: "PATCH",
+                headers: {Authorization: `Bearer ${token}`},
+            });
+            const data = await response.json();
+            if(!response.ok) {
+                throw new Error(data.error || "Refund request failed")
+            }
+            toast.success("Refund requested.");
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } catch (error) {
+            toast.error(error.message);
+        }
+    };
     if (isLoading) {
         return <p>Loading orders...</p>;
     }
@@ -93,6 +114,11 @@ function OrderHistoryPage() {
                             ))}
                             <div style={{ fontWeight: 600 }}>
                                 Total: ${Number(order.totalCost).toFixed(2)}
+                                {refundable.includes(order.status) && (
+                                    <Button variant="outline-danger" size="sm" onClick={() => handleRefund(order.id)}>
+                                        Request refund
+                                    </Button>
+                                )}
                             </div>
                         </div>
                     ))}
