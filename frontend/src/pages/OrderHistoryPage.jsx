@@ -50,7 +50,7 @@ function OrderHistoryPage() {
         loadOrders();
     }, [navigate, currentUser]);
     if (isLoading) {
-        return <p>Loading product...</p>;
+        return <p>Loading orders...</p>;
     }
     return (
         <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa"}}>
@@ -59,7 +59,7 @@ function OrderHistoryPage() {
             <Container>
                 <div className="d-flex justify-content-between align-items-center">
                     <h1 style={{ fontWeight: 700}}>Order history</h1>
-                    <Button variant="primary" onClick={() => navigate("/buyer-dashboard")}>
+                    <Button variant="primary" onClick={() => navigate("/")}>
                         Back to shop
                     </Button>
                 </div>
