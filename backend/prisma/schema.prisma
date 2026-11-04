@@ -13,6 +13,7 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  REFUND_REQUESTED
 }
 
 model Login {
