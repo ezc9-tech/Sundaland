@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
-import { Container, Spinner, Alert } from "react-bootstrap";
+import {
+  Accordion,
+  Alert,
+  Badge,
+  Container,
+  Modal,
+  Spinner,
+} from "react-bootstrap";
 import UserTable from "../components/UserTable";
 import ProductsTable from "../components/ProductsTable";
 import PaginationBar from "../components/PaginationBar";
@@ -12,18 +19,22 @@ function AdminPage() {
   const [pendingUsers, setPendingUsers] = useState([]);
   const [pendingProducts, setPendingProducts] = useState([]);
   const [approvedUsers, setApprovedUsers] = useState([]);
-  const [approvedProducts, setApprovedProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
+  const [recentAuditEvents, setRecentAuditEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [auditProduct, setAuditProduct] = useState(null);
+  const [auditEvents, setAuditEvents] = useState([]);
+  const [isAuditLoading, setIsAuditLoading] = useState(false);
   const navigate = useNavigate();
   const [userSearch, setUserSearch] = useState("");
   const [productSearch, setProductSearch] = useState("");
   const [approvedUserSearch, setApprovedUserSearch] = useState("");
-  const [approvedProductSearch, setApprovedProductSearch] = useState("");
+  const [listingSearch, setListingSearch] = useState("");
 
   const [userPage, setUserPage] = useState(1);
   const [productPage, setProductPage] = useState(1);
   const [approvedUserPage, setApprovedUserPage] = useState(1);
-  const [approvedProductPage, setApprovedProductPage] = useState(1);
+  const [listingPage, setListingPage] = useState(1);
   const itemsPerPage = 6;
 
   const [currentUser] = useState(() => {
@@ -60,7 +71,8 @@ function AdminPage() {
           usersRes,
           productsRes,
           approvedUsersRes,
-          approvedProductsRes,
+          allProductsRes,
+          auditRes,
         ] = await Promise.all([
           fetch("http://localhost:3000/api/admin/unapproved-users", {
             headers,
@@ -71,7 +83,10 @@ function AdminPage() {
           fetch("http://localhost:3000/api/admin/approved-users", {
             headers,
           }),
-          fetch("http://localhost:3000/api/admin/approved-products", {
+          fetch("http://localhost:3000/api/admin/products", {
+            headers,
+          }),
+          fetch("http://localhost:3000/api/admin/product-audit", {
             headers,
           }),
         ]);
@@ -80,23 +95,32 @@ function AdminPage() {
           !usersRes.ok ||
           !productsRes.ok ||
           !approvedUsersRes.ok ||
-          !approvedProductsRes.ok
+          !allProductsRes.ok ||
+          !auditRes.ok
         ) {
           throw new Error("Failed to fetch admin data");
         }
 
-        const [usersData, productsData, approvedUsersData, approvedProductsData] =
+        const [
+          usersData,
+          productsData,
+          approvedUsersData,
+          allProductsData,
+          auditData,
+        ] =
           await Promise.all([
             usersRes.json(),
             productsRes.json(),
             approvedUsersRes.json(),
-            approvedProductsRes.json(),
+            allProductsRes.json(),
+            auditRes.json(),
           ]);
 
         setPendingUsers(usersData.unapprovedUsers || []);
         setPendingProducts(productsData.unapprovedProducts || []);
         setApprovedUsers(approvedUsersData.approvedUsers || []);
-        setApprovedProducts(approvedProductsData.approvedProducts || []);
+        setAllProducts(allProductsData.products || []);
+        setRecentAuditEvents(auditData.auditEvents || []);
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -159,11 +183,22 @@ function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      if (!response.ok) throw new Error("Failed to approve product");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to approve product");
+      }
 
       toast.success("Product approved successfully!");
+      setRecentAuditEvents((events) =>
+        data.auditEvent ? [data.auditEvent, ...events].slice(0, 100) : events,
+      );
       setPendingProducts(
         pendingProducts.filter((prod) => prod.id !== productId),
+      );
+      setAllProducts((products) =>
+        products.map((product) =>
+          product.id === productId ? { ...product, approved: true } : product,
+        ),
       );
     } catch (error) {
       toast.error(error.message);
@@ -184,11 +219,20 @@ function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      if (!response.ok) throw new Error("Failed to deny product");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to deny product");
+      }
 
       toast.success("Product denied and removed.");
+      setRecentAuditEvents((events) =>
+        data.auditEvent ? [data.auditEvent, ...events].slice(0, 100) : events,
+      );
       setPendingProducts(
         pendingProducts.filter((prod) => prod.id !== productId),
+      );
+      setAllProducts((products) =>
+        products.filter((product) => product.id !== productId),
       );
     } catch (error) {
       toast.error(error.message);
@@ -234,9 +278,15 @@ function AdminPage() {
           body: JSON.stringify({ isActive }),
         },
       );
-      if (!response.ok) throw new Error("Failed to update product status");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update product status");
+      }
 
-      setApprovedProducts((products) =>
+      setRecentAuditEvents((events) =>
+        data.auditEvent ? [data.auditEvent, ...events].slice(0, 100) : events,
+      );
+      setAllProducts((products) =>
         products.map((product) =>
           product.id === productId ? { ...product, isActive } : product,
         ),
@@ -252,12 +302,15 @@ function AdminPage() {
   const matchSearch = (item, searchString) => {
     if (!searchString) return true;
     const lowerSearch = searchString.toLowerCase();
-    return Object.values(item).some(
-      (val) =>
-        val !== null &&
-        val !== undefined &&
-        String(val).toLowerCase().includes(lowerSearch),
-    );
+    const searchableValues = (value) => {
+      if (value === null || value === undefined) return [];
+      if (Array.isArray(value)) return value.flatMap(searchableValues);
+      if (typeof value === "object") {
+        return Object.values(value).flatMap(searchableValues);
+      }
+      return [String(value).toLowerCase()];
+    };
+    return searchableValues(item).some((value) => value.includes(lowerSearch));
   };
 
   const filteredUsers = pendingUsers.filter((user) =>
@@ -289,16 +342,40 @@ function AdminPage() {
     approvedUserPage * itemsPerPage,
   );
 
-  const filteredApprovedProducts = approvedProducts.filter((product) =>
-    matchSearch(product, approvedProductSearch),
+  const filteredProductsForAudit = allProducts.filter((product) =>
+    matchSearch(product, listingSearch),
   );
-  const totalApprovedProductPages = Math.ceil(
-    filteredApprovedProducts.length / itemsPerPage,
+  const totalListingPages = Math.ceil(
+    filteredProductsForAudit.length / itemsPerPage,
   );
-  const currentApprovedProducts = filteredApprovedProducts.slice(
-    (approvedProductPage - 1) * itemsPerPage,
-    approvedProductPage * itemsPerPage,
+  const currentAuditProducts = filteredProductsForAudit.slice(
+    (listingPage - 1) * itemsPerPage,
+    listingPage * itemsPerPage,
   );
+
+  const handleViewAudit = async (product) => {
+    setAuditProduct(product);
+    setAuditEvents([]);
+    setIsAuditLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(
+        `http://localhost:3000/api/admin/products/${product.id}/audit`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load listing history");
+      }
+      setAuditEvents(data.auditEvents || []);
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsAuditLoading(false);
+    }
+  };
 
   return (
     <div className="bg-light min-vh-100">
@@ -393,6 +470,54 @@ function AdminPage() {
             </section>
 
             <section className="mt-5">
+              <h3 className="h4 mb-3">Recent Listing Changes</h3>
+              {recentAuditEvents.length === 0 ? (
+                <Alert variant="info" className="border-0 shadow-sm">
+                  No listing changes have been recorded yet.
+                </Alert>
+              ) : (
+                <Accordion>
+                  {recentAuditEvents.map((event) => (
+                    <Accordion.Item eventKey={String(event.id)} key={event.id}>
+                      <Accordion.Header>
+                        <span className="me-2">
+                          {event.productName} - {event.action}
+                        </span>
+                        <Badge bg="secondary">
+                          {new Date(event.createdAt).toLocaleString()}
+                        </Badge>
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <p>
+                          <strong>By:</strong> {event.actorName}
+                          {event.actorEmail ? ` (${event.actorEmail})` : ""}
+                          {" - "}
+                          {event.actorRole}
+                        </p>
+                        {event.previousData && (
+                          <div className="mb-3">
+                            <strong>Before</strong>
+                            <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
+                              {JSON.stringify(event.previousData, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                        {event.currentData && (
+                          <div>
+                            <strong>After</strong>
+                            <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
+                              {JSON.stringify(event.currentData, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  ))}
+                </Accordion>
+              )}
+            </section>
+
+            <section className="mt-5">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="h4 mb-0">Approved Users</h3>
                 <SearchBar
@@ -431,36 +556,38 @@ function AdminPage() {
 
             <section className="mt-5">
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h3 className="h4 mb-0">Approved Products</h3>
+                <h3 className="h4 mb-0">Listing Audit</h3>
                 <SearchBar
-                  placeholder="Search approved products..."
-                  value={approvedProductSearch}
+                  placeholder="Search listings, companies, or sellers..."
+                  value={listingSearch}
                   onChange={(e) => {
-                    setApprovedProductSearch(e.target.value);
-                    setApprovedProductPage(1);
+                    setListingSearch(e.target.value);
+                    setListingPage(1);
                   }}
                 />
               </div>
 
-              {approvedProducts.length === 0 ? (
+              {allProducts.length === 0 ? (
                 <Alert variant="info" className="border-0 shadow-sm">
-                  No approved products.
+                  No listings found.
                 </Alert>
-              ) : currentApprovedProducts.length === 0 ? (
+              ) : currentAuditProducts.length === 0 ? (
                 <Alert variant="warning" className="border-0 shadow-sm">
-                  No approved products match your search.
+                  No listings match your search.
                 </Alert>
               ) : (
                 <>
                   <ProductsTable
-                    products={currentApprovedProducts}
+                    products={currentAuditProducts}
                     onToggleActive={handleToggleProductActive}
+                    onViewAudit={handleViewAudit}
                     readOnly
+                    auditMode
                   />
                   <PaginationBar
-                    currentPage={approvedProductPage}
-                    totalPages={totalApprovedProductPages}
-                    onPageChange={setApprovedProductPage}
+                    currentPage={listingPage}
+                    totalPages={totalListingPages}
+                    onPageChange={setListingPage}
                   />
                 </>
               )}
@@ -468,6 +595,68 @@ function AdminPage() {
           </>
         )}
       </Container>
+
+      <Modal
+        show={Boolean(auditProduct)}
+        onHide={() => setAuditProduct(null)}
+        size="lg"
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>
+            Listing History: {auditProduct?.name}
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {isAuditLoading ? (
+            <div className="text-center py-4">
+              <Spinner animation="border" role="status" />
+              <p className="mt-2 mb-0">Loading listing history...</p>
+            </div>
+          ) : auditEvents.length === 0 ? (
+            <Alert variant="info" className="mb-0">
+              No history has been recorded for this listing yet.
+            </Alert>
+          ) : (
+            <Accordion>
+              {auditEvents.map((event) => (
+                <Accordion.Item eventKey={String(event.id)} key={event.id}>
+                  <Accordion.Header>
+                    <span className="me-2">{event.action}</span>
+                    <Badge bg="secondary">
+                      {new Date(event.createdAt).toLocaleString()}
+                    </Badge>
+                  </Accordion.Header>
+                  <Accordion.Body>
+                    <p className="mb-2">
+                      <strong>By:</strong> {event.actorName}
+                      {event.actorEmail ? ` (${event.actorEmail})` : ""}
+                      {" - "}
+                      {event.actorRole}
+                    </p>
+                    {event.previousData && (
+                      <div className="mb-3">
+                        <strong>Before</strong>
+                        <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
+                          {JSON.stringify(event.previousData, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                    {event.currentData && (
+                      <div>
+                        <strong>After</strong>
+                        <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
+                          {JSON.stringify(event.currentData, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </Accordion.Body>
+                </Accordion.Item>
+              ))}
+            </Accordion>
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }

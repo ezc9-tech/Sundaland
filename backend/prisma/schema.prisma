@@ -13,6 +13,7 @@ enum OrderStatus {
   SHIPPED
   DELIVERED
   CANCELLED
+  REFUND_REQUESTED
 }
 
 model Login {
@@ -45,6 +46,7 @@ model User {
   orders    Order[]
   reviews   Review[]
   companies UsersToCompany[]
+  listingAudits ProductAuditLog[]
 }
 
 model Company {
@@ -85,6 +87,25 @@ model Product {
   orderItems OrderItem[]
 
   @@index([companyId])
+}
+
+model ProductAuditLog {
+  id            Int      @id @default(autoincrement())
+  productId     Int
+  productName   String
+  action        String
+  actorId       Int?
+  actorName     String
+  actorEmail    String?
+  actorRole     String
+  previousData  Json?
+  currentData   Json?
+  createdAt     DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([productId, createdAt])
+  @@index([createdAt])
 }
 
 model Review {

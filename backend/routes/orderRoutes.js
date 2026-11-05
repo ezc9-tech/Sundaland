@@ -11,24 +11,29 @@ export async function createOrder(req,res) {
         if(Number.isNaN(productId) || !shippingAddress) {
             return res.status(400).json({error: "productId and shippingAddress are required"});
         }
+        const quantity = req.body.quantity === undefined ? 1 : Number(req.body.quantity);
+        if (!Number.isInteger(quantity) || quantity < 1)
+        {
+            return res.status(400).json({error: "Quantity must be at least 1"});
+        }
         const product = await prisma.product.findFirst({
             where: {id: productId, approved: true, isActive: true},
         });
         if (!product) {
             return res.status(404).json({error: "Product not found"});
         }
-        if (product.inventory < 1) {
-            return res.status(409).json({error: "Product out of stock"});
+        if (product.inventory < quantity) {
+            return res.status(409).json({error: "not enough stock"});
         }
         await prisma.order.create({
             data: {
-                totalCost: product.price,
+                totalCost: product.price * quantity,
                 status: "PAID",
                 shippingAddress,
                 userId: req.user.userId,
                 items: {
                     create: {
-                        quantity: 1,
+                        quantity,
                         priceAtPurchase: product.price,
                         productId, 
                     },
@@ -38,12 +43,60 @@ export async function createOrder(req,res) {
 
         await prisma.product.update({
             where: {id: productId},
-            data: {inventory: {decrement: 1}},
+            data: {inventory: {decrement: quantity}},
         });
         return res.status(201).json({message: "Order placed"});
 
     } catch (error) {
         console.log(error);
         res.status(500).json({error: "There was an internal server error"});
+    }
+}
+export async function getOrders(req,res) {
+    try {
+        if (req.user.role !== "buyer") {
+            return res.status(403).json({error: "Only buyers have an order history"});
+        }
+        const orders = await prisma.order.findMany({
+            where: {userId: req.user.userId},
+            orderBy: {orderDate: "desc"},
+            include: {
+                items: {
+                    include: {product: {select: {name: true}}},
+                },
+            },
+        });
+        return res.status(200).json({orders});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error: "There was an internal service error"});
+    }
+}
+
+export async function requestRefund(req,res) {
+    try {
+        if (req.user.role !== "buyer") {
+            return res.status(403).json({error: "Only buyers can request a refund"});
+        }
+        const orderId = parseInt(req.params.id);
+        if(Number.isNaN(orderId)) {
+            return res.status(400).json({error: "Invalid order ID"});
+        }
+        const order = await prisma.order.findFirst({
+            where: {id: orderId, userId: req.user.userId},
+        });
+        if(!order) {
+            return res.status(404).json({error: "Order not found"});
+        }
+        if (!["PAID", "SHIPPED", "DELIVERED"].includes(order.status)) {
+            return res.status(409).json({error: "Order cannot be refunded"});
+        }
+        await prisma.order.update({
+            where: {id: orderId}, data: {status: "REFUND_REQUESTED"},
+        });
+        return res.status(200).json({message: "Refund requested"});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error: "There was an internal service error"});
     }
 }

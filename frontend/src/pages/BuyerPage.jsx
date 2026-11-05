@@ -26,16 +26,15 @@ function BuyerPage() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      const token = localStorage.getItem("token");
-      if (!token || !currentUser) {
-        navigate("/login");
+      if (currentUser?.role === "seller") {
+        navigate("/seller-dashboard", { replace: true });
         return;
       }
-      if (currentUser.role !== "buyer") {
-        navigate ("/");
+      if (currentUser?.role === "admin") {
+        navigate("/admin-dashboard", { replace: true });
         return;
       }
-      
+
       try {
         const response = await fetch("http://localhost:3000/api/products");
         const data = await response.json();
@@ -49,13 +48,22 @@ function BuyerPage() {
     loadProducts();
   }, [navigate, currentUser]);
 
+  if (currentUser?.role === "seller" || currentUser?.role === "admin") {
+    return null;
+  }
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
       <Navbar />
       <Container>
         <div className="d-flex justify-content-between align-items-center">
           <h1 style={{ fontWeight: 700 }}>Shop</h1>
-          <Button variant="primary" disabled>View cart</Button>
+          <div style={{ display: "flex", gap: "8px"}}>
+            <Button variant="primary" onClick={() => navigate("/orders")}>
+              My orders
+            </Button>
+            <Button variant="primary" disabled>View cart</Button>
+          </div>
         </div>
         <input
           type="search"

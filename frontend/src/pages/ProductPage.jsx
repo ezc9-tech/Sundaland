@@ -8,6 +8,7 @@ function ProductPage() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [quantity, setQuantity] = useState(1);
 
   const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -25,7 +26,7 @@ function ProductPage() {
     const loadProduct = async () => {
       const token = localStorage.getItem("token");
       if (!token || !currentUser) {
-        navigate("/login");
+        navigate("/login", { state: { from: `/product/${id}` } });
         return;
       }
       if (currentUser.role !== "buyer") {
@@ -78,7 +79,24 @@ function ProductPage() {
             </div>
             <p style={{ marginTop: "16px" }}>{product.description}</p>
             <p>{product.inventory} in stock</p>
-            <button onClick={() => navigate(`/checkout/${product.id}`)}>
+            <div style={{ marginBottom: "16px"}}>
+              <button
+                onClick={() => setQuantity(quantity - 1)}
+                disabled={quantity <= 1}
+              >
+                -
+              </button>
+              <span style={{ margin: "0 12px"}}>{quantity}</span>
+              <button
+               onClick={() => setQuantity(quantity + 1)}
+               disabled={quantity >= product.inventory}
+               >
+                +
+               </button>
+            </div>
+            <button onClick={() => navigate(`/checkout/${product.id}?quantity=${quantity}`)}
+              disabled={product.inventory < 1}
+            >
               Buy now
             </button>
           </div>

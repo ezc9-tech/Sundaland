@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { Container, Card, Form, Button, Spinner } from "react-bootstrap";
@@ -6,6 +6,7 @@ import { Container, Card, Form, Button, Spinner } from "react-bootstrap";
 function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,6 +41,13 @@ function LoginPage() {
       toast.success("Logged in successfully!");
 
       const userRole = result.user.role;
+      const returnTo = location.state?.from;
+      const buyerDestination =
+        typeof returnTo === "string" &&
+        returnTo.startsWith("/") &&
+        !returnTo.startsWith("//")
+          ? returnTo
+          : "/";
 
       let destination = "/";
 
@@ -48,7 +56,7 @@ function LoginPage() {
           destination = "/admin-dashboard";
           break;
         case "buyer":
-          destination = "/buyer-dashboard";
+          destination = buyerDestination;
           break;
         case "seller":
           destination = "/seller-dashboard";
@@ -58,7 +66,7 @@ function LoginPage() {
       }
 
       setTimeout(() => {
-        navigate(destination);
+        navigate(destination, { replace: true });
       }, 1000);
     } catch (err) {
       toast.error(err.message);

@@ -97,8 +97,8 @@ export async function register(req, res) {
       return res.status(400).json({ error: "Missing required fields!" });
     }
 
-    if (!["buyer", "seller", "admin"].includes(role)) {
-      return res.status(400).json({ error: "Role must be buyer, seller, or admin." });
+    if (!["buyer", "seller"].includes(role)) {
+      return res.status(400).json({ error: "Role must be buyer or seller." });
     }
 
     const parsedDateOfBirth = new Date(dateOfBirth);
