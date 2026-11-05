@@ -47,3 +47,20 @@ Josh: finishing touches for seller pages and will work on testing for next sprin
 Jake: will work on order history
 Zane: will work on debugging admin pages and implement MVP features
 Will: will help Jake with order history
+
+(11/1/26)
+Functional admin audit, order history, some seller tests
+Admin deny issue fixed
+
+Josh: will work on finishing seller tests
+Jake: will work on more buyer functionality such as refunding
+Zane: will work on admin mvp features and tests
+Will: will help with buyer
+
+(11/5/26)
+Seller tests finished, refund implemented on buyer end
+
+Josh: will work on refund on seller end and mvp features for seller, tests
+Jake: will work on bonus requirement reviews
+Zane: finish last feature for admin and test cases
+Will: will help with test plan document
