@@ -21,6 +21,7 @@ function AdminPage() {
   const [approvedUsers, setApprovedUsers] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
   const [recentAuditEvents, setRecentAuditEvents] = useState([]);
+  const [recentActivityEvents, setRecentActivityEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [auditProduct, setAuditProduct] = useState(null);
   const [auditEvents, setAuditEvents] = useState([]);
@@ -30,6 +31,7 @@ function AdminPage() {
   const [productSearch, setProductSearch] = useState("");
   const [approvedUserSearch, setApprovedUserSearch] = useState("");
   const [listingSearch, setListingSearch] = useState("");
+  const [activitySearch, setActivitySearch] = useState("");
 
   const [userPage, setUserPage] = useState(1);
   const [productPage, setProductPage] = useState(1);
@@ -73,6 +75,7 @@ function AdminPage() {
           approvedUsersRes,
           allProductsRes,
           auditRes,
+          activityRes,
         ] = await Promise.all([
           fetch("http://localhost:3000/api/admin/unapproved-users", {
             headers,
@@ -89,6 +92,9 @@ function AdminPage() {
           fetch("http://localhost:3000/api/admin/product-audit", {
             headers,
           }),
+          fetch("http://localhost:3000/api/admin/activity", {
+            headers,
+          }),
         ]);
 
         if (
@@ -96,7 +102,8 @@ function AdminPage() {
           !productsRes.ok ||
           !approvedUsersRes.ok ||
           !allProductsRes.ok ||
-          !auditRes.ok
+          !auditRes.ok ||
+          !activityRes.ok
         ) {
           throw new Error("Failed to fetch admin data");
         }
@@ -107,6 +114,7 @@ function AdminPage() {
           approvedUsersData,
           allProductsData,
           auditData,
+          activityData,
         ] =
           await Promise.all([
             usersRes.json(),
@@ -114,6 +122,7 @@ function AdminPage() {
             approvedUsersRes.json(),
             allProductsRes.json(),
             auditRes.json(),
+            activityRes.json(),
           ]);
 
         setPendingUsers(usersData.unapprovedUsers || []);
@@ -121,6 +130,7 @@ function AdminPage() {
         setApprovedUsers(approvedUsersData.approvedUsers || []);
         setAllProducts(allProductsData.products || []);
         setRecentAuditEvents(auditData.auditEvents || []);
+        setRecentActivityEvents(activityData.activityEvents || []);
       } catch (error) {
         toast.error(error.message);
       } finally {
@@ -130,6 +140,12 @@ function AdminPage() {
 
     fetchData();
   }, [navigate, currentUser]);
+
+  const addActivityEvent = (event) => {
+    if (event) {
+      setRecentActivityEvents((events) => [event, ...events].slice(0, 100));
+    }
+  };
 
   const handleApproveUser = async (userId) => {
     const token = localStorage.getItem("token");
@@ -141,10 +157,21 @@ function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      if (!response.ok) throw new Error("Failed to approve user");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to approve user");
+      }
 
+      const approvedUser = pendingUsers.find((user) => user.id === userId);
+      addActivityEvent(data.activityEvent);
       toast.success("User approved successfully!");
-      setPendingUsers(pendingUsers.filter((user) => user.id !== userId));
+      setPendingUsers((users) => users.filter((user) => user.id !== userId));
+      if (approvedUser) {
+        setApprovedUsers((users) => [
+          { ...approvedUser, approved: true, isActive: true },
+          ...users,
+        ]);
+      }
     } catch (error) {
       toast.error(error.message);
     }
@@ -152,7 +179,7 @@ function AdminPage() {
 
   const handleDenyUser = async (userId) => {
     if (
-      !window.confirm("Are you sure you want to deny and delete this account?")
+      !window.confirm("Are you sure you want to deny and remove this pending account?")
     )
       return;
     const token = localStorage.getItem("token");
@@ -164,10 +191,14 @@ function AdminPage() {
           headers: { Authorization: `Bearer ${token}` },
         },
       );
-      if (!response.ok) throw new Error("Failed to deny user");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to deny user");
+      }
 
+      addActivityEvent(data.activityEvent);
       toast.success("User denied and removed.");
-      setPendingUsers(pendingUsers.filter((user) => user.id !== userId));
+      setPendingUsers((users) => users.filter((user) => user.id !== userId));
     } catch (error) {
       toast.error(error.message);
     }
@@ -207,7 +238,7 @@ function AdminPage() {
 
   const handleDenyProduct = async (productId) => {
     if (
-      !window.confirm("Are you sure you want to deny and delete this product?")
+      !window.confirm("Are you sure you want to deny and remove this pending listing?")
     )
       return;
     const token = localStorage.getItem("token");
@@ -253,12 +284,18 @@ function AdminPage() {
           body: JSON.stringify({ isActive }),
         },
       );
-      if (!response.ok) throw new Error("Failed to update user status");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update user status");
+      }
 
+      addActivityEvent(data.activityEvent);
       setApprovedUsers((users) =>
         users.map((user) => (user.id === userId ? { ...user, isActive } : user)),
       );
-      toast.success(`User ${isActive ? "enabled" : "disabled"} successfully.`);
+      toast.success(
+        `Account access ${isActive ? "restored" : "revoked"} successfully.`,
+      );
     } catch (error) {
       toast.error(error.message);
     }
@@ -292,7 +329,7 @@ function AdminPage() {
         ),
       );
       toast.success(
-        `Product ${isActive ? "enabled" : "disabled"} successfully.`,
+        `Listing ${isActive ? "restored" : "revoked"} successfully.`,
       );
     } catch (error) {
       toast.error(error.message);
@@ -344,6 +381,9 @@ function AdminPage() {
 
   const filteredProductsForAudit = allProducts.filter((product) =>
     matchSearch(product, listingSearch),
+  );
+  const filteredActivityEvents = recentActivityEvents.filter((event) =>
+    matchSearch(event, activitySearch),
   );
   const totalListingPages = Math.ceil(
     filteredProductsForAudit.length / itemsPerPage,
@@ -434,9 +474,9 @@ function AdminPage() {
 
             <section>
               <div className="d-flex justify-content-between align-items-center mb-3">
-                <h3 className="h4 mb-0">Pending Products</h3>
+                <h3 className="h4 mb-0">Pending Listings</h3>
                 <SearchBar
-                  placeholder="Search products..."
+                  placeholder="Search listings..."
                   value={productSearch}
                   onChange={(e) => {
                     setProductSearch(e.target.value);
@@ -447,11 +487,11 @@ function AdminPage() {
 
               {pendingProducts.length === 0 ? (
                 <Alert variant="info" className="border-0 shadow-sm">
-                  No products waiting for approval.
+                  No listings waiting for approval.
                 </Alert>
               ) : currentProducts.length === 0 ? (
                 <Alert variant="warning" className="border-0 shadow-sm">
-                  No products match your search.
+                  No listings match your search.
                 </Alert>
               ) : (
                 <>
@@ -509,6 +549,62 @@ function AdminPage() {
                               {JSON.stringify(event.currentData, null, 2)}
                             </pre>
                           </div>
+                        )}
+                      </Accordion.Body>
+                    </Accordion.Item>
+                  ))}
+                </Accordion>
+              )}
+            </section>
+
+            <section className="mt-5">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <h3 className="h4 mb-0">Recent User Activity</h3>
+                <SearchBar
+                  placeholder="Search user activity..."
+                  value={activitySearch}
+                  onChange={(e) => setActivitySearch(e.target.value)}
+                />
+              </div>
+              {filteredActivityEvents.length === 0 ? (
+                <Alert variant="info" className="border-0 shadow-sm">
+                  {recentActivityEvents.length === 0
+                    ? "No user activity has been recorded yet."
+                    : "No activity matches your search."}
+                </Alert>
+              ) : (
+                <Accordion>
+                  {filteredActivityEvents.map((event) => (
+                    <Accordion.Item eventKey={String(event.id)} key={event.id}>
+                      <Accordion.Header>
+                        <span className="me-2 text-capitalize">
+                          {event.action.replace(/_/g, " ").toLowerCase()}
+                          {event.subjectName ? ` - ${event.subjectName}` : ""}
+                        </span>
+                        <Badge bg="secondary">
+                          {new Date(event.createdAt).toLocaleString()}
+                        </Badge>
+                      </Accordion.Header>
+                      <Accordion.Body>
+                        <p>
+                          <strong>By:</strong> {event.actorName}
+                          {event.actorEmail ? ` (${event.actorEmail})` : ""}
+                          {" - "}
+                          {event.actorRole}
+                        </p>
+                        <p>
+                          <strong>Entity:</strong> {event.entityType}
+                          {event.entityId ? ` #${event.entityId}` : ""}
+                        </p>
+                        {event.subjectEmail && (
+                          <p>
+                            <strong>Account:</strong> {event.subjectEmail}
+                          </p>
+                        )}
+                        {event.details && (
+                          <pre className="bg-light border rounded p-2 mb-0 text-wrap">
+                            {JSON.stringify(event.details, null, 2)}
+                          </pre>
                         )}
                       </Accordion.Body>
                     </Accordion.Item>

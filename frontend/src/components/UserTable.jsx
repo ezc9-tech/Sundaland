@@ -54,7 +54,7 @@ export default function UserTable({
                   className="fw-medium"
                   onClick={() => onToggleActive(user.id, !user.isActive)}
                 >
-                  {user.isActive ? "Disable" : "Enable"}
+                {user.isActive ? "Revoke access" : "Restore access"}
                 </Button>
               </td>
             ) : (

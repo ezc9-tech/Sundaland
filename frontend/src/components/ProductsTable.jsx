@@ -86,7 +86,7 @@ export default function ProductsTable({
                       onToggleActive(product.id, !product.isActive)
                     }
                   >
-                    {product.isActive ? "Disable" : "Enable"}
+                    {product.isActive ? "Revoke listing" : "Restore listing"}
                   </Button>
                 </div>
               </td>

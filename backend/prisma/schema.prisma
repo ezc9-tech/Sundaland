@@ -28,25 +28,26 @@ model Login {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  firstName    String
-  lastName     String
-  phoneNumber  String
-  role         String   @default("buyer") // "buyer" | "seller" | "admin"
-  address      String
-  dateOfBirth  DateTime
-  approved     Boolean  @default(false)
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  phoneNumber String
+  role        String   @default("buyer") // "buyer" | "seller" | "admin"
+  address     String
+  dateOfBirth DateTime
+  approved    Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  login     Login?
-  carts     Cart[]
-  payments  PaymentInfo[]
-  orders    Order[]
-  reviews   Review[]
-  companies UsersToCompany[]
+  login         Login?
+  carts         Cart[]
+  payments      PaymentInfo[]
+  orders        Order[]
+  reviews       Review[]
+  companies     UsersToCompany[]
   listingAudits ProductAuditLog[]
+  activityLogs  ActivityLog[]
 }
 
 model Company {
@@ -90,22 +91,45 @@ model Product {
 }
 
 model ProductAuditLog {
-  id            Int      @id @default(autoincrement())
-  productId     Int
-  productName   String
-  action        String
-  actorId       Int?
-  actorName     String
-  actorEmail    String?
-  actorRole     String
-  previousData  Json?
-  currentData   Json?
-  createdAt     DateTime @default(now())
+  id           Int      @id @default(autoincrement())
+  productId    Int
+  productName  String
+  action       String
+  actorId      Int?
+  actorName    String
+  actorEmail   String?
+  actorRole    String
+  previousData Json?
+  currentData  Json?
+  createdAt    DateTime @default(now())
 
   actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
 
   @@index([productId, createdAt])
   @@index([createdAt])
+}
+
+model ActivityLog {
+  id           Int      @id @default(autoincrement())
+  action       String
+  entityType   String
+  entityId     Int?
+  actorId      Int?
+  actorName    String
+  actorEmail   String?
+  actorRole    String
+  subjectId    Int?
+  subjectName  String?
+  subjectEmail String?
+  subjectRole  String?
+  details      Json?
+  createdAt    DateTime @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([actorId, createdAt])
+  @@index([entityType, entityId, createdAt])
 }
 
 model Review {

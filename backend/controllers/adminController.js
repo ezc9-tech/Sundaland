@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { approveProduct, approveUser, denyProduct, denyUser, getUnapprovedProducts, getUnapprovedUsers, getApprovedUsers, getApprovedProducts, getAllProducts, getProductAuditHistory, getRecentProductAuditHistory, setProductActiveStatus, setUserActiveStatus } from "../routes/adminRoutes.js";
+import { approveProduct, approveUser, denyProduct, denyUser, getUnapprovedProducts, getUnapprovedUsers, getApprovedUsers, getApprovedProducts, getAllProducts, getProductAuditHistory, getRecentProductAuditHistory, getRecentActivity, setProductActiveStatus, setUserActiveStatus } from "../routes/adminRoutes.js";
 import { isAdmin, verifyToken } from "../middleware/auth.js";
 
 const adminRoutes = Router()
@@ -16,6 +16,7 @@ adminRoutes.get("/approved-users", getApprovedUsers);
 adminRoutes.get("/approved-products", getApprovedProducts);
 adminRoutes.get("/products", getAllProducts);
 adminRoutes.get("/product-audit", getRecentProductAuditHistory);
+adminRoutes.get("/activity", getRecentActivity);
 adminRoutes.get("/products/:id/audit", getProductAuditHistory);
 adminRoutes.patch("/users/:id/status", setUserActiveStatus);
 adminRoutes.patch("/products/:id/status", setProductActiveStatus);

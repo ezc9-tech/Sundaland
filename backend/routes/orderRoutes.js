@@ -1,4 +1,5 @@
 import {prisma} from "../utils/prisma.ts";
+import {recordActivity} from "../utils/activityLog.js";
 
 export async function createOrder(req,res) {
     try {
@@ -25,25 +26,39 @@ export async function createOrder(req,res) {
         if (product.inventory < quantity) {
             return res.status(409).json({error: "not enough stock"});
         }
-        await prisma.order.create({
-            data: {
-                totalCost: product.price * quantity,
-                status: "PAID",
-                shippingAddress,
-                userId: req.user.userId,
-                items: {
-                    create: {
-                        quantity,
-                        priceAtPurchase: product.price,
-                        productId, 
+        await prisma.$transaction(async (transaction) => {
+            const order = await transaction.order.create({
+                data: {
+                    totalCost: product.price * quantity,
+                    status: "PAID",
+                    shippingAddress,
+                    userId: req.user.userId,
+                    items: {
+                        create: {
+                            quantity,
+                            priceAtPurchase: product.price,
+                            productId,
+                        },
                     },
                 },
-            },
-        });
+            });
 
-        await prisma.product.update({
-            where: {id: productId},
-            data: {inventory: {decrement: quantity}},
+            await transaction.product.update({
+                where: {id: productId},
+                data: {inventory: {decrement: quantity}},
+            });
+            await recordActivity(transaction, {
+                actor: req.user,
+                action: "ORDER_PLACED",
+                entityType: "ORDER",
+                entityId: order.id,
+                details: {
+                    productId,
+                    productName: product.name,
+                    quantity,
+                    totalCost: Number(product.price) * quantity,
+                },
+            });
         });
         return res.status(201).json({message: "Order placed"});
 
@@ -91,10 +106,24 @@ export async function requestRefund(req,res) {
         if (!["PAID", "SHIPPED", "DELIVERED"].includes(order.status)) {
             return res.status(409).json({error: "Order cannot be refunded"});
         }
-        await prisma.order.update({
-            where: {id: orderId}, data: {status: "REFUND_REQUESTED"},
+        const activityEvent = await prisma.$transaction(async (transaction) => {
+            const updatedOrder = await transaction.order.update({
+                where: {id: orderId},
+                data: {status: "REFUND_REQUESTED"},
+            });
+            const event = await recordActivity(transaction, {
+                actor: req.user,
+                action: "REFUND_REQUESTED",
+                entityType: "ORDER",
+                entityId: updatedOrder.id,
+                details: {
+                    previousStatus: order.status,
+                    status: updatedOrder.status,
+                },
+            });
+            return event;
         });
-        return res.status(200).json({message: "Refund requested"});
+        return res.status(200).json({message: "Refund requested", activityEvent});
     } catch (error) {
         console.log(error);
         res.status(500).json({error: "There was an internal service error"});
