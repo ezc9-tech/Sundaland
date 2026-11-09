@@ -92,8 +92,7 @@ export async function createProduct(req, res) {
       return res.status(401).json({ error: "Token is missing a user id" });
     }
 
-    // Companies are no longer entered by the user. Reuse the user's existing
-    // company, or create one automatically the first time they list a product.
+    //company not required anymore, this is just for the schema
     const membership = await prisma.usersToCompany.findFirst({
       where: { userId },
       include: { company: true },
