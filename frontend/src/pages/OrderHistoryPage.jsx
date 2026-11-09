@@ -51,12 +51,20 @@ function OrderHistoryPage() {
         loadOrders();
     }, [navigate, currentUser]);
     const handleRefund = async (orderId) => {
-        if(!window.confirm("Confirm refund request for this order?")) return;
+        const reason = window.prompt("Please give a reason for requesting a refund:");
+        if (reason === null) return;
+        if (reason.trim() === "") {
+            toast.error("A reason is required.");
+            return;
+        }
         try {
             const token = localStorage.getItem("token");
             const response = await fetch(`http://localhost:3000/api/orders/${orderId}/refund`, {
                 method: "PATCH",
-                headers: {Authorization: `Bearer ${token}`},
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,},
+                body: JSON.stringify({reason: reason.trim()}),
             });
             const data = await response.json();
             if(!response.ok) {
