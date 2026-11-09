@@ -10,7 +10,6 @@ const EMPTY_FORM = {
   description: "",
   pictureUrl: "",
   inventory: "0",
-  companyName: "",
 };
 
 function CreateProductPage() {
@@ -63,7 +62,6 @@ function CreateProductPage() {
           description: form.description.trim(),
           pictureUrl: form.pictureUrl.trim() || undefined,
           inventory: Number(form.inventory),
-          companyName: form.companyName.trim(),
         }),
       });
 
@@ -163,7 +161,7 @@ function CreateProductPage() {
                       />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="pictureUrl">
+                    <Form.Group className="mb-4" controlId="pictureUrl">
                       <Form.Label>Picture URL (optional)</Form.Label>
                       <Form.Control
                         type="url"
@@ -172,23 +170,6 @@ function CreateProductPage() {
                         onChange={handleChange}
                         placeholder="https://example.com/photo.jpg"
                       />
-                    </Form.Group>
-
-                    <Form.Group className="mb-4" controlId="companyName">
-                      <Form.Label>Company Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="companyName"
-                        value={form.companyName}
-                        onChange={handleChange}
-                        maxLength={100}
-                        pattern="[A-Za-z0-9 ]+"
-                        title="Letters, numbers, and spaces only"
-                        required
-                      />
-                      <Form.Text muted>
-                        A new company is created if this name doesn't exist yet.
-                      </Form.Text>
                     </Form.Group>
 
                     <div className="d-grid">

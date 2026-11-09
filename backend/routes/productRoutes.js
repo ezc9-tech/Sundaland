@@ -55,15 +55,12 @@ export async function getProductById(req, res) {
 
 export async function createProduct(req, res) {
   try {
-    const { name, price, description, pictureUrl, inventory, companyName } =
-      req.body;
+    const { name, price, description, pictureUrl, inventory } = req.body;
 
-    if (!name || !description || price === undefined || !companyName) {
+    if (!name || !description || price === undefined) {
       return res
         .status(400)
-        .json({
-          error: "name, price, description, and companyName are required",
-        });
+        .json({ error: "name, price, and description are required" });
     }
 
     const nameError = validateProductName(name);
@@ -90,25 +87,19 @@ export async function createProduct(req, res) {
         .json({ error: "inventory must be a non-negative whole number" });
     }
 
-    const trimmedCompanyName = String(companyName).trim();
-    if (
-      trimmedCompanyName.length === 0 ||
-      trimmedCompanyName.length > 100 ||
-      !/^[A-Za-z0-9 ]+$/.test(trimmedCompanyName)
-    ) {
-      return res.status(400).json({
-        error: "companyName must be 1-100 characters: letters, numbers, and spaces only",
-      });
-    }
-
     const userId = userIdOf(req.user);
     if (userId === null) {
       return res.status(401).json({ error: "Token is missing a user id" });
     }
 
-    let company = await prisma.company.findFirst({
-      where: { name: { equals: trimmedCompanyName, mode: "insensitive" } },
+    //company not required anymore, this is just for the schema
+    const membership = await prisma.usersToCompany.findFirst({
+      where: { userId },
+      include: { company: true },
+      orderBy: { companyId: "asc" },
     });
+
+    let company = membership?.company;
 
     if (!company) {
       const creator = await prisma.user.findUnique({ where: { id: userId } });
@@ -118,24 +109,12 @@ export async function createProduct(req, res) {
 
       company = await prisma.company.create({
         data: {
-          name: trimmedCompanyName,
+          name: `Seller ${userId}`,
           address: creator.address,
           phoneNumber: creator.phoneNumber,
           users: { create: { userId } },
         },
       });
-    } else if (req.user.role !== "admin") {
-      const membership = await prisma.usersToCompany.findUnique({
-        where: {
-          userId_companyId: { userId, companyId: company.id },
-        },
-      });
-
-      if (!membership) {
-        return res.status(403).json({
-          error: "That company name is already taken by another company",
-        });
-      }
     }
 
     const product = await prisma.$transaction(async (transaction) => {

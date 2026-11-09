@@ -6,8 +6,22 @@ import { Container, Row, Col, Card, Table, Badge, Button, Spinner, Alert } from 
 
 const LOW_STOCK_LIMIT = 5;
 
+const STATUS_VARIANTS = {
+  PENDING: "secondary",
+  PAID: "primary",
+  SHIPPED: "info",
+  DELIVERED: "success",
+  CANCELLED: "dark",
+  REFUND_REQUESTED: "warning",
+};
+
+const money = (value) => `$${Number(value || 0).toFixed(2)}`;
+
 function SellerDashboardPage() {
   const [products, setProducts] = useState([]);
+  const [refunds, setRefunds] = useState([]);
+  const [sales, setSales] = useState({ orders: [], summary: null });
+  const [salesVersion, setSalesVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -27,7 +41,7 @@ function SellerDashboardPage() {
   const canSell = currentUser?.role === "seller" || currentUser?.role === "admin";
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       const token = localStorage.getItem("token");
 
       if (!token || !currentUser) {
@@ -53,13 +67,54 @@ function SellerDashboardPage() {
         setProducts(data.products || []);
       } catch (error) {
         toast.error(error.message);
+      }
+
+      try {
+        const refundResponse = await fetch("http://localhost:3000/api/orders/refunds", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!refundResponse.ok) {
+          throw new Error("Failed to fetch refund requests");
+        }
+
+        const refundData = await refundResponse.json();
+        setRefunds(refundData.orders || []);
+      } catch (error) {
+        toast.error(error.message);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, [navigate, currentUser, canSell]);
+
+  useEffect(() => {
+    if (!canSell) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    const loadSales = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/orders/sales", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch sales history");
+        }
+
+        const data = await response.json();
+        setSales({ orders: data.orders || [], summary: data.summary || null });
+      } catch (error) {
+        toast.error(error.message);
+      }
+    };
+
+    loadSales();
+  }, [canSell, salesVersion]);
 
   const handleDelete = async (product) => {
     if (!window.confirm(`Delete "${product.name}"? This can't be undone.`)) return;
@@ -79,6 +134,44 @@ function SellerDashboardPage() {
 
       toast.success("Product deleted.");
       setProducts((prev) => prev.filter((p) => p.id !== product.id));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleRefundDecision = async (order, decision) => {
+    const verb = decision === "approve" ? "Approve" : "Deny";
+    if (!window.confirm(`${verb} the refund for order #${order.id}?`)) return;
+
+    const token = localStorage.getItem("token");
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/orders/${order.id}/refund/${decision}`,
+        {
+          method: "PATCH",
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to update refund request");
+      }
+
+      toast.success(decision === "approve" ? "Refund approved." : "Refund denied.");
+      setRefunds((prev) => prev.filter((o) => o.id !== order.id));
+      setSalesVersion((v) => v + 1);
+
+      // Approved refunds put the items back into stock.
+      if (decision === "approve") {
+        setProducts((prev) =>
+          prev.map((p) => {
+            const item = order.items.find((i) => i.productId === p.id);
+            return item ? { ...p, inventory: p.inventory + item.quantity } : p;
+          })
+        );
+      }
     } catch (error) {
       toast.error(error.message);
     }
@@ -137,6 +230,83 @@ function SellerDashboardPage() {
               ))}
             </Row>
 
+            <Card className="border-0 shadow-sm mb-4">
+              <Card.Header className="bg-white fw-bold">Earnings</Card.Header>
+              <Card.Body>
+                <Row xs={2} lg={4} className="g-3 text-center">
+                  {[
+                    { label: "Total Earned", value: money(sales.summary?.totalEarned), variant: "success" },
+                    { label: "On Hold (Refund Requested)", value: money(sales.summary?.onHold), variant: "warning" },
+                    { label: "Refunded", value: money(sales.summary?.refunded), variant: "danger" },
+                    { label: "Paid Orders", value: sales.summary?.orderCount ?? 0, variant: "primary" },
+                  ].map((stat) => (
+                    <Col key={stat.label}>
+                      <div className={`h3 fw-bold text-${stat.variant}`}>{stat.value}</div>
+                      <div className="text-muted small">{stat.label}</div>
+                    </Col>
+                  ))}
+                </Row>
+              </Card.Body>
+            </Card>
+
+            {refunds.length > 0 && (
+              <Card className="border-0 shadow-sm mb-4">
+                <Card.Header className="bg-white fw-bold">
+                  Refund Requests <Badge bg="danger">{refunds.length}</Badge>
+                </Card.Header>
+                <Table responsive hover className="mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Order</th>
+                      <th>Buyer</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Reason</th>
+                      <th className="text-end">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {refunds.map((order) => (
+                      <tr key={order.id}>
+                        <td className="fw-semibold">#{order.id}</td>
+                        <td>
+                          {order.user
+                            ? `${order.user.firstName} ${order.user.lastName}`
+                            : "Unknown"}
+                        </td>
+                        <td>
+                          {order.items.map((item) => (
+                            <div key={item.id}>
+                              {item.product?.name} &times; {item.quantity}
+                            </div>
+                          ))}
+                        </td>
+                        <td>${Number(order.totalCost).toFixed(2)}</td>
+                        <td style={{ maxWidth: 260 }}>{order.refundReason}</td>
+                        <td className="text-end text-nowrap">
+                          <Button
+                            size="sm"
+                            variant="success"
+                            className="me-2"
+                            onClick={() => handleRefundDecision(order, "approve")}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline-danger"
+                            onClick={() => handleRefundDecision(order, "deny")}
+                          >
+                            Deny
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              </Card>
+            )}
+
             {products.length === 0 ? (
               <Alert variant="info" className="text-center py-4 border-0 shadow-sm">
                 You haven't created any listings yet.
@@ -194,6 +364,52 @@ function SellerDashboardPage() {
                 </Table>
               </Card>
             )}
+
+            <Card className="border-0 shadow-sm mt-4">
+              <Card.Header className="bg-white fw-bold">Sales History</Card.Header>
+              {sales.orders.length === 0 ? (
+                <Card.Body className="text-center text-muted">
+                  No orders for your products yet.
+                </Card.Body>
+              ) : (
+                <Table responsive hover className="mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Order</th>
+                      <th>Buyer</th>
+                      <th>Items</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sales.orders.map((order) => (
+                      <tr key={order.id}>
+                        <td className="text-nowrap">
+                          {new Date(order.orderDate).toLocaleDateString()}
+                        </td>
+                        <td className="fw-semibold">#{order.id}</td>
+                        <td>{order.buyerName}</td>
+                        <td>
+                          {order.items.map((item) => (
+                            <div key={item.id}>
+                              {item.name} &times; {item.quantity}
+                            </div>
+                          ))}
+                        </td>
+                        <td>{money(order.sellerTotal)}</td>
+                        <td>
+                          <Badge bg={STATUS_VARIANTS[order.status] || "secondary"}>
+                            {order.status.replace("_", " ")}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
+              )}
+            </Card>
           </>
         )}
       </Container>
