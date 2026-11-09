@@ -189,6 +189,7 @@ model Order {
   totalCost       Decimal     @db.Decimal(10, 2)
   status          OrderStatus @default(PENDING)
   shippingAddress String
+  refundReason    String?
 
   userId Int
   user   User @relation(fields: [userId], references: [id])
