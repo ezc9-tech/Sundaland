@@ -13,6 +13,7 @@ import {
 import UserTable from "../components/UserTable";
 import ProductsTable from "../components/ProductsTable";
 import PaginationBar from "../components/PaginationBar";
+import RecentActivityTable from "../components/RecentActivityTable";
 import SearchBar from "../components/SearchBar";
 
 function AdminPage() {
@@ -31,7 +32,6 @@ function AdminPage() {
   const [productSearch, setProductSearch] = useState("");
   const [approvedUserSearch, setApprovedUserSearch] = useState("");
   const [listingSearch, setListingSearch] = useState("");
-  const [activitySearch, setActivitySearch] = useState("");
 
   const [userPage, setUserPage] = useState(1);
   const [productPage, setProductPage] = useState(1);
@@ -382,9 +382,6 @@ function AdminPage() {
   const filteredProductsForAudit = allProducts.filter((product) =>
     matchSearch(product, listingSearch),
   );
-  const filteredActivityEvents = recentActivityEvents.filter((event) =>
-    matchSearch(event, activitySearch),
-  );
   const totalListingPages = Math.ceil(
     filteredProductsForAudit.length / itemsPerPage,
   );
@@ -509,109 +506,8 @@ function AdminPage() {
               )}
             </section>
 
-            <section className="mt-5">
-              <h3 className="h4 mb-3">Recent Listing Changes</h3>
-              {recentAuditEvents.length === 0 ? (
-                <Alert variant="info" className="border-0 shadow-sm">
-                  No listing changes have been recorded yet.
-                </Alert>
-              ) : (
-                <Accordion>
-                  {recentAuditEvents.map((event) => (
-                    <Accordion.Item eventKey={String(event.id)} key={event.id}>
-                      <Accordion.Header>
-                        <span className="me-2">
-                          {event.productName} - {event.action}
-                        </span>
-                        <Badge bg="secondary">
-                          {new Date(event.createdAt).toLocaleString()}
-                        </Badge>
-                      </Accordion.Header>
-                      <Accordion.Body>
-                        <p>
-                          <strong>By:</strong> {event.actorName}
-                          {event.actorEmail ? ` (${event.actorEmail})` : ""}
-                          {" - "}
-                          {event.actorRole}
-                        </p>
-                        {event.previousData && (
-                          <div className="mb-3">
-                            <strong>Before</strong>
-                            <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
-                              {JSON.stringify(event.previousData, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-                        {event.currentData && (
-                          <div>
-                            <strong>After</strong>
-                            <pre className="bg-light border rounded p-2 mt-1 mb-0 text-wrap">
-                              {JSON.stringify(event.currentData, null, 2)}
-                            </pre>
-                          </div>
-                        )}
-                      </Accordion.Body>
-                    </Accordion.Item>
-                  ))}
-                </Accordion>
-              )}
-            </section>
-
-            <section className="mt-5">
-              <div className="d-flex justify-content-between align-items-center mb-3">
-                <h3 className="h4 mb-0">Recent User Activity</h3>
-                <SearchBar
-                  placeholder="Search user activity..."
-                  value={activitySearch}
-                  onChange={(e) => setActivitySearch(e.target.value)}
-                />
-              </div>
-              {filteredActivityEvents.length === 0 ? (
-                <Alert variant="info" className="border-0 shadow-sm">
-                  {recentActivityEvents.length === 0
-                    ? "No user activity has been recorded yet."
-                    : "No activity matches your search."}
-                </Alert>
-              ) : (
-                <Accordion>
-                  {filteredActivityEvents.map((event) => (
-                    <Accordion.Item eventKey={String(event.id)} key={event.id}>
-                      <Accordion.Header>
-                        <span className="me-2 text-capitalize">
-                          {event.action.replace(/_/g, " ").toLowerCase()}
-                          {event.subjectName ? ` - ${event.subjectName}` : ""}
-                        </span>
-                        <Badge bg="secondary">
-                          {new Date(event.createdAt).toLocaleString()}
-                        </Badge>
-                      </Accordion.Header>
-                      <Accordion.Body>
-                        <p>
-                          <strong>By:</strong> {event.actorName}
-                          {event.actorEmail ? ` (${event.actorEmail})` : ""}
-                          {" - "}
-                          {event.actorRole}
-                        </p>
-                        <p>
-                          <strong>Entity:</strong> {event.entityType}
-                          {event.entityId ? ` #${event.entityId}` : ""}
-                        </p>
-                        {event.subjectEmail && (
-                          <p>
-                            <strong>Account:</strong> {event.subjectEmail}
-                          </p>
-                        )}
-                        {event.details && (
-                          <pre className="bg-light border rounded p-2 mb-0 text-wrap">
-                            {JSON.stringify(event.details, null, 2)}
-                          </pre>
-                        )}
-                      </Accordion.Body>
-                    </Accordion.Item>
-                  ))}
-                </Accordion>
-              )}
-            </section>
+            <RecentActivityTable events={recentAuditEvents} listing />
+            <RecentActivityTable events={recentActivityEvents} />
 
             <section className="mt-5">
               <div className="d-flex justify-content-between align-items-center mb-3">
