@@ -97,6 +97,10 @@ export async function requestRefund(req,res) {
         if(Number.isNaN(orderId)) {
             return res.status(400).json({error: "Invalid order ID"});
         }
+        const {reason} = req.body;
+        if (typeof reason !== "string" || !reason.trim()) {
+            return res.status(400).json({error: "Refund reason required."});
+        }
         const order = await prisma.order.findFirst({
             where: {id: orderId, userId: req.user.userId},
         });
@@ -109,7 +113,7 @@ export async function requestRefund(req,res) {
         const activityEvent = await prisma.$transaction(async (transaction) => {
             const updatedOrder = await transaction.order.update({
                 where: {id: orderId},
-                data: {status: "REFUND_REQUESTED"},
+                data: {status: "REFUND_REQUESTED", refundReason: reason.trim(),},
             });
             const event = await recordActivity(transaction, {
                 actor: req.user,
