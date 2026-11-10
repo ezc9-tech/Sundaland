@@ -110,6 +110,9 @@ function BuyerPage() {
                 />
                 <div style={{ padding: "12px" }}>
                   <div style={{ fontWeight: 600 }}>{product.name}</div>
+                  <div style={{ color: "#6c757d", fontSize: "14px"}}>
+                    Sold by {product.company.name}
+                  </div>
                   <div>${Number(product.price).toFixed(2)}</div>
                 </div>
               </Link>
