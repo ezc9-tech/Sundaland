@@ -76,6 +76,7 @@ model Product {
   price       Decimal @db.Decimal(10, 2)
   description String
   pictureUrl  String?
+  tag         String?
   inventory   Int     @default(0)
   approved    Boolean @default(false)
   isActive    Boolean @default(true)
