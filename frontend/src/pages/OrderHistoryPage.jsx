@@ -1,5 +1,5 @@
 import Navbar from "../components/Navbar";
-import {Container, Button} from "react-bootstrap";
+import {Container, Button, Form, Modal} from "react-bootstrap";
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import toast, {Toaster} from "react-hot-toast";
@@ -9,6 +9,8 @@ function OrderHistoryPage() {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [refundOrderId, setRefundOrderId] = useState(null);
+    const [reason, setReason] = useState("");
 
     const [currentUser] = useState(() => {
         const userString = localStorage.getItem("user");
@@ -50,8 +52,11 @@ function OrderHistoryPage() {
         };
         loadOrders();
     }, [navigate, currentUser]);
-    const handleRefund = async (orderId) => {
-        const reason = window.prompt("Please give a reason for requesting a refund:");
+    const closeRefundModal = () => {
+        setRefundOrderId(null);
+        setReason("");
+    }
+    const handleRefund = async () => {
         if (reason === null) return;
         if (reason.trim() === "") {
             toast.error("A reason is required.");
@@ -59,7 +64,7 @@ function OrderHistoryPage() {
         }
         try {
             const token = localStorage.getItem("token");
-            const response = await fetch(`http://localhost:3000/api/orders/${orderId}/refund`, {
+            const response = await fetch(`http://localhost:3000/api/orders/${refundOrderId}/refund`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -71,6 +76,7 @@ function OrderHistoryPage() {
                 throw new Error(data.error || "Refund request failed")
             }
             toast.success("Refund requested.");
+            closeRefundModal();
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -85,6 +91,24 @@ function OrderHistoryPage() {
         <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa"}}>
             <Navbar />
             <Toaster position="top-center" />
+            <Modal show={refundOrderId !== null} onHide={closeRefundModal} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Request a refund</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        placeholder="Why are you refunding?"
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                    />
+                </Modal.Body>
+                <Modal.Footer>
+                    <Button variant="secondary" onClick={closeRefundModal}>Cancel</Button>
+                    <Button variant="danger" onClick={handleRefund}>Submit</Button>
+                </Modal.Footer>
+            </Modal>
             <Container>
                 <div className="d-flex justify-content-between align-items-center">
                     <h1 style={{ fontWeight: 700}}>Order history</h1>
@@ -123,7 +147,9 @@ function OrderHistoryPage() {
                             <div style={{ fontWeight: 600 }}>
                                 Total: ${Number(order.totalCost).toFixed(2)}
                                 {refundable.includes(order.status) && (
-                                    <Button variant="outline-danger" size="sm" onClick={() => handleRefund(order.id)}>
+                                    <Button variant="outline-danger" size="sm" onClick={() => {
+                                        setRefundOrderId(order.id);
+                                    }}>
                                         Request refund
                                     </Button>
                                 )}
