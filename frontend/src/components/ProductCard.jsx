@@ -1,6 +1,8 @@
 import { Card, Button, Badge } from "react-bootstrap";
 
 function ProductCard({ product, onApprove, onDeny }) {
+  const description = product.description || "";
+
   return (
     <Card className="h-100 shadow-sm border-0">
       <Card.Img
@@ -26,31 +28,37 @@ function ProductCard({ product, onApprove, onDeny }) {
         </Card.Subtitle>
 
         <Card.Text style={{ flexGrow: 1 }}>
-          {product.description.length > 100
-            ? `${product.description.substring(0, 100)}...`
-            : product.description}
+          {description.length > 100
+            ? `${description.substring(0, 100)}...`
+            : description}
         </Card.Text>
 
         <div className="mb-3 small text-muted">
           <strong>Stock:</strong> {product.inventory} units
         </div>
 
-        <div className="d-flex gap-2 mt-auto">
-          <Button
-            variant="success"
-            className="w-50 fw-semibold"
-            onClick={() => onApprove(product.id)}
-          >
-            Approve
-          </Button>
-          <Button
-            variant="outline-danger"
-            className="w-50 fw-semibold"
-            onClick={() => onDeny(product.id)}
-          >
-            Deny
-          </Button>
-        </div>
+        {(onApprove || onDeny) && (
+          <div className="d-flex gap-2 mt-auto">
+            {onApprove && (
+              <Button
+                variant="success"
+                className="w-50 fw-semibold"
+                onClick={() => onApprove(product.id)}
+              >
+                Approve
+              </Button>
+            )}
+            {onDeny && (
+              <Button
+                variant="outline-danger"
+                className="w-50 fw-semibold"
+                onClick={() => onDeny(product.id)}
+              >
+                Deny
+              </Button>
+            )}
+          </div>
+        )}
       </Card.Body>
     </Card>
   );

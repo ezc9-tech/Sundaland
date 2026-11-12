@@ -1,6 +1,7 @@
 import { useState, useEffect} from "react";
 import { useNavigate, Link,} from "react-router-dom";
 import Navbar from "../components/Navbar";
+import ProductCard from "../components/ProductCard";
 import { Container, Alert, Button } from "react-bootstrap";
 
 function BuyerPage() {
@@ -90,31 +91,9 @@ function BuyerPage() {
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
-                style={{
-                  textDecoration: "none",
-                  color: "#212529",
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                }}
+                style={{ textDecoration: "none", color: "#212529" }}
               >
-                <img
-                  src={product.pictureUrl ||
-          "https://via.placeholder.com/300x200?text=No+Image"}
-                  alt={product.name}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "1 / 1",
-                    objectFit: "cover",
-                  }}
-                />
-                <div style={{ padding: "12px" }}>
-                  <div style={{ fontWeight: 600 }}>{product.name}</div>
-                  <div style={{ color: "#6c757d", fontSize: "14px"}}>
-                    Sold by {product.company.name}
-                  </div>
-                  <div>${Number(product.price).toFixed(2)}</div>
-                </div>
+                <ProductCard product={product} />
               </Link>
             ))}
           </div>

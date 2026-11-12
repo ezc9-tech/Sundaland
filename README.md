@@ -105,3 +105,11 @@ is selected.
 The admin dashboard supports approving or denying pending accounts and listings. Admins can revoke or restore access for approved accounts, revoke or restore approved listings, review listing change history, and search recent account, order, and refund activity. Recent listing changes and user activity are searchable, paginated tables showing up to the latest 100 events each; select View to inspect details. Admin API routes require an authenticated admin account.
 
 The activity history is stored in the `ActivityLog` table. Apply the checked-in migrations and regenerate Prisma Client after updating the database schema.
+
+
+## Tests
+
+### Frontend
+
+To run e2e tests on the backend you will need to run both the backend and frontend in their own terminals.
+Then 
