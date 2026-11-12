@@ -112,4 +112,8 @@ The activity history is stored in the `ActivityLog` table. Apply the checked-in 
 ### Frontend
 
 To run e2e tests on the backend you will need to run both the backend and frontend in their own terminals.
-Then 
+You will also need to make sure you have playwright installed to, do that by running `npx playwright install`. Then run `npx playwright test`.
+
+### Backend
+
+All you have to do is run `npm run test` to run all unit and integration tests on the backend.
