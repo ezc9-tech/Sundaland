@@ -8,9 +8,10 @@ const prisma = {
     update: jest.fn(),
     delete: jest.fn(),
   },
-  company: { findFirst: jest.fn(), create: jest.fn() },
+  company: { create: jest.fn() },
   user: { findUnique: jest.fn() },
-  usersToCompany: { findUnique: jest.fn() },
+  usersToCompany: { findFirst: jest.fn() },
+  productAuditLog: { create: jest.fn() },
   orderItem: { count: jest.fn() },
   cartToProducts: { deleteMany: jest.fn() },
   review: { deleteMany: jest.fn() },
@@ -38,9 +39,41 @@ function mockRes() {
 
 const seller = { id: 7, role: "seller" };
 const admin = { id: 1, role: "admin" };
+const sellerRecord = {
+  id: 7,
+  firstName: "Seller",
+  lastName: "User",
+  role: "seller",
+  address: "1 Main St",
+  phoneNumber: "555-0100",
+  login: { email: "seller@example.com" },
+};
+
+function productRecord(overrides = {}) {
+  return {
+    id: 5,
+    name: "Teak Chair",
+    description: "Handmade teak dining chair.",
+    price: 49.99,
+    inventory: 10,
+    pictureUrl: null,
+    approved: true,
+    isActive: true,
+    company: { id: 3, name: "Seller 7" },
+    ...overrides,
+  };
+}
 
 beforeEach(() => {
   jest.resetAllMocks();
+  prisma.$transaction.mockImplementation((callback) => callback(prisma));
+  prisma.user.findUnique.mockResolvedValue(sellerRecord);
+  prisma.company.create.mockResolvedValue({ id: 12 });
+  prisma.product.create.mockResolvedValue(productRecord({ id: 9 }));
+  prisma.product.update.mockImplementation(({ data }) =>
+    Promise.resolve(productRecord(data)),
+  );
+  prisma.productAuditLog.create.mockResolvedValue({ id: 1 });
   jest.spyOn(console, "log").mockImplementation(() => {});
 });
 
@@ -131,7 +164,6 @@ describe("createProduct", () => {
     price: 49.99,
     description: "Handmade teak dining chair.",
     inventory: 10,
-    companyName: "Acme",
   };
 
   const makeReq = (overrides = {}, user = seller) => ({
@@ -143,7 +175,6 @@ describe("createProduct", () => {
     ["name", { name: "" }],
     ["description", { description: "" }],
     ["price", { price: undefined }],
-    ["companyName", { companyName: "" }],
   ])("returns 400 when %s is missing", async (_field, overrides) => {
     const res = mockRes();
     await createProduct(makeReq(overrides), res);
@@ -178,9 +209,9 @@ describe("createProduct", () => {
   });
 
   test("accepts a price of 0 and defaults inventory to 0", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.usersToCompany.findUnique.mockResolvedValue({ userId: 7, companyId: 3 });
-    prisma.product.create.mockResolvedValue({ id: 9 });
+    prisma.usersToCompany.findFirst.mockResolvedValue({
+      company: { id: 3 },
+    });
     const res = mockRes();
 
     await createProduct(makeReq({ price: 0, inventory: undefined }), res);
@@ -192,48 +223,36 @@ describe("createProduct", () => {
     });
   });
 
-  test("returns 400 for a company name with disallowed characters", async () => {
-    const res = mockRes();
-    await createProduct(makeReq({ companyName: "Acme & Sons" }), res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(prisma.company.findFirst).not.toHaveBeenCalled();
-  });
-
   test("returns 401 when the token has no usable user id", async () => {
     const res = mockRes();
     await createProduct(makeReq({}, { role: "seller" }), res);
     expect(res.status).toHaveBeenCalledWith(401);
-    expect(prisma.company.findFirst).not.toHaveBeenCalled();
+    expect(prisma.usersToCompany.findFirst).not.toHaveBeenCalled();
   });
 
-  test("looks the company up by name, ignoring case", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.usersToCompany.findUnique.mockResolvedValue({});
-    prisma.product.create.mockResolvedValue({ id: 9 });
-
-    await createProduct(makeReq({ companyName: "  acme  " }), mockRes());
-
-    expect(prisma.company.findFirst).toHaveBeenCalledWith({
-      where: { name: { equals: "acme", mode: "insensitive" } },
+  test("uses the seller's existing company", async () => {
+    prisma.usersToCompany.findFirst.mockResolvedValue({
+      company: { id: 3 },
     });
+
+    await createProduct(makeReq(), mockRes());
+
+    expect(prisma.usersToCompany.findFirst).toHaveBeenCalledWith({
+      where: { userId: 7 },
+      include: { company: true },
+      orderBy: { companyId: "asc" },
+    });
+    expect(prisma.company.create).not.toHaveBeenCalled();
   });
 
-  test("creates a new company, linked to the creator, when the name is new", async () => {
-    prisma.company.findFirst.mockResolvedValue(null);
-    prisma.user.findUnique.mockResolvedValue({
-      id: 7,
-      address: "1 Main St",
-      phoneNumber: "555-0100",
-    });
-    prisma.company.create.mockResolvedValue({ id: 12 });
-    prisma.product.create.mockResolvedValue({ id: 9 });
+  test("creates a default company linked to the seller when none exists", async () => {
     const res = mockRes();
 
     await createProduct(makeReq(), res);
 
     expect(prisma.company.create).toHaveBeenCalledWith({
       data: {
-        name: "Acme",
+        name: "Seller 7",
         address: "1 Main St",
         phoneNumber: "555-0100",
         users: { create: { userId: 7 } },
@@ -244,7 +263,6 @@ describe("createProduct", () => {
   });
 
   test("returns 401 when the creator no longer exists", async () => {
-    prisma.company.findFirst.mockResolvedValue(null);
     prisma.user.findUnique.mockResolvedValue(null);
     const res = mockRes();
 
@@ -254,24 +272,10 @@ describe("createProduct", () => {
     expect(prisma.company.create).not.toHaveBeenCalled();
   });
 
-  test("returns 403 when the company exists and the seller isn't a member", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.usersToCompany.findUnique.mockResolvedValue(null);
-    const res = mockRes();
-
-    await createProduct(makeReq(), res);
-
-    expect(prisma.usersToCompany.findUnique).toHaveBeenCalledWith({
-      where: { userId_companyId: { userId: 7, companyId: 3 } },
+  test("creates a product under the seller's existing company", async () => {
+    prisma.usersToCompany.findFirst.mockResolvedValue({
+      company: { id: 3 },
     });
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(prisma.product.create).not.toHaveBeenCalled();
-  });
-
-  test("creates the product when the seller is a member", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.usersToCompany.findUnique.mockResolvedValue({ userId: 7, companyId: 3 });
-    prisma.product.create.mockResolvedValue({ id: 9, name: "Teak Chair" });
     const res = mockRes();
 
     await createProduct(makeReq(), res);
@@ -285,25 +289,27 @@ describe("createProduct", () => {
         inventory: 10,
         companyId: 3,
       },
+      include: { company: true },
     });
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  test("lets an admin list under a company without being a member", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.product.create.mockResolvedValue({ id: 9 });
+  test("creates a default company for an admin with no company membership", async () => {
     const res = mockRes();
 
     await createProduct(makeReq({}, admin), res);
 
-    expect(prisma.usersToCompany.findUnique).not.toHaveBeenCalled();
+    expect(prisma.usersToCompany.findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { userId: 1 } }),
+    );
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
   test("returns 400 when the database rejects the company link", async () => {
-    prisma.company.findFirst.mockResolvedValue({ id: 3 });
-    prisma.usersToCompany.findUnique.mockResolvedValue({});
-    prisma.product.create.mockRejectedValue({ code: "P2003" });
+    prisma.usersToCompany.findFirst.mockResolvedValue({
+      company: { id: 3 },
+    });
+    prisma.$transaction.mockRejectedValue({ code: "P2003" });
     const res = mockRes();
 
     await createProduct(makeReq(), res);
@@ -312,7 +318,7 @@ describe("createProduct", () => {
   });
 
   test("returns 500 for unexpected errors", async () => {
-    prisma.company.findFirst.mockRejectedValue(new Error("boom"));
+    prisma.usersToCompany.findFirst.mockRejectedValue(new Error("boom"));
     const res = mockRes();
 
     await createProduct(makeReq(), res);
@@ -431,20 +437,19 @@ describe("updateProduct", () => {
   });
 
   test("sends a seller's text changes back for approval", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
 
     await updateProduct(makeReq({ name: "  New Name  " }), mockRes());
 
     expect(prisma.product.update).toHaveBeenCalledWith({
       where: { id: 5 },
       data: { name: "New Name", approved: false },
+      include: { company: true },
     });
   });
 
   test("also resets approval when only the description changes", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
 
     await updateProduct(makeReq({ description: "A new description." }), mockRes());
 
@@ -452,8 +457,7 @@ describe("updateProduct", () => {
   });
 
   test("keeps approval when only price, inventory, or picture change", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
 
     await updateProduct(
       makeReq({ price: 12, inventory: 3, pictureUrl: "https://x.test/a.jpg" }),
@@ -468,8 +472,7 @@ describe("updateProduct", () => {
   });
 
   test("clears the picture when an empty pictureUrl is sent", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
 
     await updateProduct(makeReq({ pictureUrl: "" }), mockRes());
 
@@ -477,8 +480,7 @@ describe("updateProduct", () => {
   });
 
   test("doesn't reset approval for admins", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
 
     await updateProduct(makeReq({ name: "Admin Edit" }, admin), mockRes());
 
@@ -486,8 +488,7 @@ describe("updateProduct", () => {
   });
 
   test("returns 200 with the updated product", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
-    prisma.product.update.mockResolvedValue({ id: 5, price: 12 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
     const res = mockRes();
 
     await updateProduct(makeReq({ price: 12 }), res);
@@ -528,9 +529,8 @@ describe("deleteProduct", () => {
   });
 
   test("clears carts and reviews, then deletes an unordered product", async () => {
-    prisma.product.findFirst.mockResolvedValue({ id: 5 });
+    prisma.product.findFirst.mockResolvedValue(productRecord());
     prisma.orderItem.count.mockResolvedValue(0);
-    prisma.$transaction.mockResolvedValue([]);
     const res = mockRes();
 
     await deleteProduct(makeReq(), res);
