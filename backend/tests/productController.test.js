@@ -9,6 +9,7 @@ const stub = (name) =>
 
 jest.unstable_mockModule("../routes/productRoutes.js", () => ({
   getProducts: stub("getProducts"),
+  getProductTags: stub("getProductTags"),
   getProductById: stub("getProductById"),
   createProduct: stub("createProduct"),
   getMyProducts: stub("getMyProducts"),
@@ -40,6 +41,12 @@ describe("public routes (no token needed)", () => {
     const res = await request(app).get("/api/products");
     expect(res.status).toBe(200);
     expect(res.body.handler).toBe("getProducts");
+  });
+
+  test("GET /tags lists product tags", async () => {
+    const res = await request(app).get("/api/products/tags");
+    expect(res.status).toBe(200);
+    expect(res.body.handler).toBe("getProductTags");
   });
 
   test("GET /:id returns one product", async () => {
