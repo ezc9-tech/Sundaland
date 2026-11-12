@@ -3,6 +3,7 @@ import { verifyToken } from "../middleware/auth.js";
 import {
     getProducts,
     getProductById,
+    getProductTags,
     createProduct,
     getMyProducts,
     getMyProduct,
@@ -13,6 +14,7 @@ import {
 const productRoutes = Router()
 
 productRoutes.get("/", getProducts);
+productRoutes.get("/tags", getProductTags);
 
 productRoutes.post("/", verifyToken, createProduct);
 
