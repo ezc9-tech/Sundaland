@@ -23,9 +23,15 @@ function ProductCard({ product, onApprove, onDeny }) {
           </Badge>
         </div>
 
-        <Card.Subtitle className="mb-3 text-muted">
+        <Card.Subtitle className={product.tag ? "mb-2 text-muted" : "mb-3 text-muted"}>
           Seller: {product.company?.name || "Unknown Company"}
         </Card.Subtitle>
+
+        {product.tag && (
+          <div className="mb-3">
+            <Badge bg="secondary">{product.tag}</Badge>
+          </div>
+        )}
 
         <Card.Text style={{ flexGrow: 1 }}>
           {description.length > 100

@@ -190,7 +190,7 @@ async function seedDatabase() {
       description: "Tactile switches with customizable RGB lighting.",
       inventory: 50,
       approved: true,
-      tag: "tech",
+      tag: "Computers & Accessories",
       companyId: techCompany.id,
       pictureUrl:
         "https://media.wired.com/photos/6928c534e7dd69f52e08eeb0/master/w_1600%2Cc_limit/Tecware%2520Spectre75-2%2520source%2520henri%2520robbins.png",
@@ -204,7 +204,7 @@ async function seedDatabase() {
       description: "Zero latency wireless gaming mouse.",
       inventory: 120,
       approved: true,
-      tag: "tech",
+      tag: "Computers & Accessories",
       companyId: techCompany.id,
       pictureUrl:
         "https://upload.wikimedia.org/wikipedia/commons/2/22/3-Tasten-Maus_Microsoft.jpg?utm_source=en.wikipedia.org&utm_campaign=index&utm_content=original",
@@ -218,7 +218,7 @@ async function seedDatabase() {
       description: "Next gen VR headset prototype. Awaiting compliance check.",
       inventory: 5,
       approved: false,
-      tag: "tech",
+      tag: "Electronics",
       companyId: techCompany.id,
     },
   });
@@ -230,7 +230,7 @@ async function seedDatabase() {
       description: "Works great, minor scratches.",
       inventory: 10,
       approved: false,
-      tag: "used",
+      tag: "Electronics",
       companyId: davesDiscount.id,
     },
   });
@@ -243,7 +243,7 @@ async function seedDatabase() {
         "Fitness tracking smart ring. Pending final quality control.",
       inventory: 20,
       approved: false,
-      tag: "wearable",
+      tag: "Electronics",
       companyId: techCompany.id, 
     },
   });
@@ -255,7 +255,7 @@ async function seedDatabase() {
       description: "No dead pixels, comes with power cable only. Unboxed.",
       inventory: 8,
       approved: false,
-      tag: "used",
+      tag: "Computers & Accessories",
       companyId: davesDiscount.id,
     },
   });

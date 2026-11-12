@@ -1,6 +1,7 @@
 import { prisma } from "../utils/prisma.ts";
 import dotenv from "dotenv";
 import { validateProductName, validateProductDescription } from "../utils/validateText.js";
+import { validateProductTag, PRODUCT_TAGS } from "../utils/productTags.js";
 import { listingSnapshot, recordListingAudit } from "../utils/listingAudit.js";
 
 dotenv.config();
@@ -18,6 +19,10 @@ function ownedBy(user) {
   if (userId === null) return { id: -1 };
 
   return { company: { users: { some: { userId } } } };
+}
+
+export function getProductTags(req, res) {
+  return res.status(200).json({ tags: PRODUCT_TAGS });
 }
 
 export async function getProducts(req, res) {
@@ -55,7 +60,7 @@ export async function getProductById(req, res) {
 
 export async function createProduct(req, res) {
   try {
-    const { name, price, description, pictureUrl, inventory } = req.body;
+    const { name, price, description, pictureUrl, inventory, tag } = req.body;
 
     if (!name || !description || price === undefined) {
       return res
@@ -71,6 +76,11 @@ export async function createProduct(req, res) {
     const descriptionError = validateProductDescription(description);
     if (descriptionError) {
       return res.status(400).json({ error: descriptionError });
+    }
+
+    const tagError = validateProductTag(tag);
+    if (tagError) {
+      return res.status(400).json({ error: tagError });
     }
 
     const parsedPrice = Number(price);
@@ -125,6 +135,7 @@ export async function createProduct(req, res) {
           description,
           pictureUrl: pictureUrl ?? null,
           inventory: parsedInventory,
+          tag,
           companyId: company.id,
         },
         include: { company: true },
@@ -198,7 +209,7 @@ export async function updateProduct(req, res) {
       return res.status(400).json({ error: "Invalid product ID" });
     }
 
-    const { name, description, price, inventory, pictureUrl } = req.body;
+    const { name, description, price, inventory, pictureUrl, tag } = req.body;
     const data = {};
 
     if (name !== undefined) {
@@ -211,6 +222,12 @@ export async function updateProduct(req, res) {
       const descriptionError = validateProductDescription(description);
       if (descriptionError) return res.status(400).json({ error: descriptionError });
       data.description = description.trim();
+    }
+
+    if (tag !== undefined) {
+      const tagError = validateProductTag(tag);
+      if (tagError) return res.status(400).json({ error: tagError });
+      data.tag = tag;
     }
 
     if (price !== undefined) {

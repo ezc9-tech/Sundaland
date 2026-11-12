@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import { Container } from "react-bootstrap";
+import { Container, Badge } from "react-bootstrap";
 import { useParams, useNavigate, Link } from "react-router-dom";
 
 function ProductPage() {
@@ -110,6 +110,11 @@ function ProductPage() {
             }}
           />
           <div style={{ flex: 1, minWidth: "280px" }}>
+            {product.tag && (
+              <Badge bg="secondary" className="mb-2">
+                {product.tag}
+              </Badge>
+            )}
             <h1 style={{ fontWeight: 700 }}>{product.name}</h1>
             <p style={{ color: "#6c757d" }}>Sold by {product.company.name}</p>
             <div style={{ fontSize: "28px", fontWeight: 600 }}>
@@ -170,6 +175,11 @@ function ProductPage() {
                     style={{ width: "100%", aspectRatio: "1 / 1", objectFit: "cover"}}
                   />
                   <div style={{padding: "12px"}}>
+                    {otherProduct.tag && (
+                      <Badge bg="secondary" className="mb-1">
+                        {otherProduct.tag}
+                      </Badge>
+                    )}
                     <div style={{fontWeight: 600}}>{otherProduct.name}</div>
                     <div style={{color: "#6c757d", fontSize: "14px"}}>
                       Sold by {otherProduct.company.name}
