@@ -164,6 +164,7 @@ describe("createProduct", () => {
     price: 49.99,
     description: "Handmade teak dining chair.",
     inventory: 10,
+    tag: "Furniture",
   };
 
   const makeReq = (overrides = {}, user = seller) => ({
@@ -287,6 +288,7 @@ describe("createProduct", () => {
         description: "Handmade teak dining chair.",
         pictureUrl: null,
         inventory: 10,
+        tag: "Furniture",
         companyId: 3,
       },
       include: { company: true },
