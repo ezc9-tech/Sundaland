@@ -74,7 +74,7 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev --prefix ../backend',
-      url: 'http://127.0.0.1:3000/api/products',
+      url: 'http://127.0.0.1:3000/health',
       reuseExistingServer: !process.env.CI,
     },
     {
