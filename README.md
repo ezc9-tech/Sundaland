@@ -118,6 +118,12 @@ with `npx playwright install --with-deps`. The GitHub Actions workflow
 provisions a PostgreSQL service, applies migrations, seeds the test data, and
 runs the Playwright suite.
 
+The admin tests use the seeded admin login and create unique pending accounts
+and listings for each test, removing their fixtures afterward. They connect
+directly to the database using `DATABASE_URL` from the environment or
+`backend/.env`; ensure any reused backend server uses the same test database.
+Apply the migrations before running the tests.
+
 ### Backend
 
 All you have to do is run `npm run test` to run all unit and integration tests on the backend.
