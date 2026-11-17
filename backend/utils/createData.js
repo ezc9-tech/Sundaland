@@ -264,10 +264,83 @@ async function seedDatabase() {
     data: {
       rating: 5,
       comment: "Best keyboard I have ever used! Fast shipping.",
+      createdAt: new Date("2026-11-01"),
       userId: approvedBuyer.id,
       productId: mechanicalKeyboard.id,
     },
   });
+
+  const reviewers = [
+    {firstName: "Tony", lastName: "Stark", email: 
+      "tony.stark@gmail.com", product: mechanicalKeyboard, rating: 4, 
+      comment: "Not as good as the one I built in my garage, but it works.", 
+      orderDate: "2026-10-12", reviewDate: "2026-10-20"},
+
+    {firstName: "Steve", lastName: "Rogers", email: 
+      "steve.rogers@gmail.com", product: mechanicalKeyboard, rating: 5, 
+      comment: "Satisfying and no confusing touchscreens, I could use this all day", 
+      orderDate: "2026-10-18", reviewDate: "2026-10-27"},
+      
+      {firstName: "Bruce", lastName: "Banner", email: 
+      "bruce.banner@gmail.com", product: mechanicalKeyboard, rating: 2, 
+      comment: "Got frustrated and bent the spacebar. Too weak for my taste", 
+      orderDate: "2026-10-25", reviewDate: "2026-11-05"},
+
+      {firstName: "Clint", lastName: "Barton", email: 
+      "clint.barton@gmail.com", product: wirelessMouse, rating: 4, 
+      comment: "Tracks really well, really only got it for the usb dongle.", 
+      orderDate: "2026-10-15", reviewDate: "2026-10-30"},
+
+      {firstName: "Natasha", lastName: "Romanoff", email: 
+      "nat.rushman@gmail.com", product: wirelessMouse, rating: 3, 
+      comment: "Precise, but the scroll wheel squeaks.", 
+      orderDate: "2026-10-28", reviewDate: "2026-11-08"},
+  ];
+
+  for (const reviewer of reviewers) {
+    const buyer = await prisma.user.create({
+      data: {
+        firstName: reviewer.firstName,
+        lastName: reviewer.lastName,
+        phoneNumber: "555-0100",
+        role: "buyer",
+        address: "890 Fifth Avenue, New York, NY",
+        dateOfBirth: new Date("1963-07-02"),
+        approved: true,
+        login: {
+          create: {email: reviewer.email, password: defaultPassword},
+        },
+      },
+    });
+    await prisma.order.create({
+      data: {
+        totalCost: reviewer.product.price,
+        status: "DELIVERED",
+        orderDate: new Date(reviewer.orderDate),
+        shippingAddress: buyer.address,
+        userId: buyer.id,
+        items: {
+          create: [
+            {
+              productId: reviewer.product.id,
+              quantity: 1,
+              priceAtPurchase: reviewer.product.price,
+            },
+          ],
+        },
+      },
+    });
+
+    await prisma.review.create({
+      data: {
+        rating: reviewer.rating,
+        comment: reviewer.comment,
+        createdAt: new Date(reviewer.reviewDate),
+        userId: buyer.id,
+        productId: reviewer.product.id,
+      },
+    });
+  }
 
   await prisma.paymentInfo.create({
     data: {
@@ -305,6 +378,7 @@ async function seedDatabase() {
     data: {
       totalCost: 129.99,
       status: "PAID",
+      orderDate: new Date("2026-10-27"),
       shippingAddress: approvedBuyer.address,
       userId: approvedBuyer.id,
       items: {

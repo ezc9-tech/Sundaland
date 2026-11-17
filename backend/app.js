@@ -4,6 +4,7 @@ import cors from 'cors';
 import adminRoutes from "./controllers/adminController.js";
 import productRoutes from "./controllers/productController.js";
 import orderRoutes from "./controllers/orderController.js";
+import reviewRoutes from "./controllers/reviewController.js";
 
 const app = express();
 
@@ -17,5 +18,6 @@ app.use('/api', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use("/api/products", productRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 export default app;
