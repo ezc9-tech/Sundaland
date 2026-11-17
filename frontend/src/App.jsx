@@ -10,6 +10,7 @@ import BuyerPage from "./pages/BuyerPage";
 import ProductPage from "./pages/ProductPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrderHistoryPage from "./pages/OrderHistoryPage";
+import ReviewsPage from "./pages/ReviewsPage";
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/checkout/:id" element={<PaymentPage/>} />
         <Route path="/orders" element={<OrderHistoryPage />} />
+        <Route path="/reviews/:id" element={<ReviewsPage />} />
       </Routes>
     </BrowserRouter>
   );

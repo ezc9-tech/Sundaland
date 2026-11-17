@@ -27,12 +27,7 @@ function ProductPage() {
 
   useEffect(() => {
     const loadProduct = async () => {
-      const token = localStorage.getItem("token");
-      if (!token || !currentUser) {
-        navigate("/login", { state: { from: `/product/${id}` } });
-        return;
-      }
-      if (currentUser.role !== "buyer") {
+      if (currentUser && currentUser.role !== "buyer") {
         navigate("/");
         return;
       }
@@ -91,7 +86,7 @@ function ProductPage() {
   },[product]);
 
   useEffect(() => {
-    const loadRating = async () => {
+    const loadReviews = async () => {
       try {
         const response = await fetch("http://localhost:3000/api/reviews/summary");
         const data = await response.json();
@@ -100,7 +95,7 @@ function ProductPage() {
         console.log(error);
       }
     };
-    loadRating();
+    loadReviews();
   }, [id]);
 
   if (isLoading) {
@@ -132,9 +127,14 @@ function ProductPage() {
             )}
             <h1 style={{ fontWeight: 700 }}>{product.name}</h1>
             <p style={{ color: "#6c757d" }}>Sold by {product.company.name}</p>
-            <div style={{marginbottom: "8px"}}>
-              <StarRating rating={rating}/>
-            </div>
+            <Link
+              to={`/reviews/${product.id}`}
+              style={{color: "inherit", textDecoration: "none"}}
+            >
+              <div style={{marginBottom: "8px"}}>
+                <StarRating rating={rating}/>
+              </div>
+            </Link>
             <div style={{ fontSize: "28px", fontWeight: 600 }}>
               ${Number(product.price).toFixed(2)}
             </div>
