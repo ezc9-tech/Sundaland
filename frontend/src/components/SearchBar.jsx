@@ -6,6 +6,7 @@ export default function SearchBar({ placeholder, value, onChange }) {
       <Form.Control
         type="text"
         placeholder={placeholder}
+        aria-label={placeholder}
         value={value}
         onChange={onChange}
       />

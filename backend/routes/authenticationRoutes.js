@@ -2,6 +2,7 @@ import { prisma } from "../utils/prisma.ts";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { recordActivity } from "../utils/activityLog.js";
 
 dotenv.config();
 
@@ -120,22 +121,34 @@ export async function register(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const createdUser = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        phoneNumber,
-        role,
-        address: address,
-        dateOfBirth: parsedDateOfBirth,
-        approved: false,
-        login: {
-          create: {
-            email: email,
-            password: hashedPassword,
+    const createdUser = await prisma.$transaction(async (transaction) => {
+      const user = await transaction.user.create({
+        data: {
+          firstName,
+          lastName,
+          phoneNumber,
+          role,
+          address: address,
+          dateOfBirth: parsedDateOfBirth,
+          approved: false,
+          login: {
+            create: {
+              email: email,
+              password: hashedPassword,
+            },
           },
         },
-      },
+        include: { login: { select: { email: true } } },
+      });
+
+      await recordActivity(transaction, {
+        actor: { userId: user.id },
+        action: "ACCOUNT_REGISTERED",
+        entityType: "USER",
+        entityId: user.id,
+        subject: user,
+      });
+      return user;
     });
 
     return res.status(201).json({

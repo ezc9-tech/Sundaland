@@ -1,6 +1,7 @@
 import { useState, useEffect} from "react";
 import { useNavigate, Link,} from "react-router-dom";
 import Navbar from "../components/Navbar";
+import ProductCard from "../components/ProductCard";
 import { Container, Alert, Button } from "react-bootstrap";
 
 function BuyerPage() {
@@ -26,16 +27,15 @@ function BuyerPage() {
 
   useEffect(() => {
     const loadProducts = async () => {
-      const token = localStorage.getItem("token");
-      if (!token || !currentUser) {
-        navigate("/login");
+      if (currentUser?.role === "seller") {
+        navigate("/seller-dashboard", { replace: true });
         return;
       }
-      if (currentUser.role !== "buyer") {
-        navigate ("/");
+      if (currentUser?.role === "admin") {
+        navigate("/admin-dashboard", { replace: true });
         return;
       }
-      
+
       try {
         const response = await fetch("http://localhost:3000/api/products");
         const data = await response.json();
@@ -49,13 +49,22 @@ function BuyerPage() {
     loadProducts();
   }, [navigate, currentUser]);
 
+  if (currentUser?.role === "seller" || currentUser?.role === "admin") {
+    return null;
+  }
+
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}>
       <Navbar />
       <Container>
         <div className="d-flex justify-content-between align-items-center">
           <h1 style={{ fontWeight: 700 }}>Shop</h1>
-          <Button variant="primary" disabled>View cart</Button>
+          <div style={{ display: "flex", gap: "8px"}}>
+            <Button variant="primary" onClick={() => navigate("/orders")}>
+              My orders
+            </Button>
+            <Button variant="primary" disabled>View cart</Button>
+          </div>
         </div>
         <input
           type="search"
@@ -82,28 +91,9 @@ function BuyerPage() {
               <Link
                 key={product.id}
                 to={`/product/${product.id}`}
-                style={{
-                  textDecoration: "none",
-                  color: "#212529",
-                  backgroundColor: "white",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                }}
+                style={{ textDecoration: "none", color: "#212529" }}
               >
-                <img
-                  src={product.pictureUrl ||
-          "https://via.placeholder.com/300x200?text=No+Image"}
-                  alt={product.name}
-                  style={{
-                    width: "100%",
-                    aspectRatio: "1 / 1",
-                    objectFit: "cover",
-                  }}
-                />
-                <div style={{ padding: "12px" }}>
-                  <div style={{ fontWeight: 600 }}>{product.name}</div>
-                  <div>${Number(product.price).toFixed(2)}</div>
-                </div>
+                <ProductCard product={product} />
               </Link>
             ))}
           </div>

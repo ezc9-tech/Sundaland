@@ -14,9 +14,25 @@ function EditProductPage() {
     description: "",
     pictureUrl: "",
     inventory: "0",
+    tag: "",
   });
+  const [tags, setTags] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/products/tags");
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        setTags(data.tags);
+      } catch {
+        toast.error("Could not load categories");
+      }
+    };
+    loadTags();
+  }, []);
 
   useEffect(() => {
     const loadProduct = async () => {
@@ -45,6 +61,7 @@ function EditProductPage() {
           description: p.description,
           pictureUrl: p.pictureUrl || "",
           inventory: String(p.inventory),
+          tag: p.tag || "",
         });
       } catch (error) {
         toast.error(error.message);
@@ -81,6 +98,8 @@ function EditProductPage() {
           description: form.description.trim(),
           pictureUrl: form.pictureUrl.trim(),
           inventory: Number(form.inventory),
+          // only send a tag if one is selected (older listings may not have one)
+          ...(form.tag ? { tag: form.tag } : {}),
         }),
       });
 
@@ -167,6 +186,18 @@ function EditProductPage() {
                         </Form.Group>
                       </Col>
                     </Row>
+
+                    <Form.Group className="mb-3" controlId="tag">
+                      <Form.Label>Category</Form.Label>
+                      <Form.Select name="tag" value={form.tag} onChange={handleChange}>
+                        <option value="">Select a category...</option>
+                        {tags.map((tag) => (
+                          <option key={tag} value={tag}>
+                            {tag}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
 
                     <Form.Group className="mb-3" controlId="description">
                       <Form.Label>Description</Form.Label>

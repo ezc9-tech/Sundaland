@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, Navigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
 import Navbar from "../components/Navbar";
 import { Container, Row, Col, Card, Form, Button, Alert, Spinner } from "react-bootstrap";
@@ -10,13 +10,14 @@ const EMPTY_FORM = {
   description: "",
   pictureUrl: "",
   inventory: "0",
-  companyName: "",
+  tag: "",
 };
 
 function CreateProductPage() {
   const navigate = useNavigate();
   const [form, setForm] = useState(EMPTY_FORM);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tags, setTags] = useState([]);
 
   const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -31,12 +32,25 @@ function CreateProductPage() {
     }
   });
 
+  useEffect(() => {
+    const loadTags = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/products/tags");
+        if (!response.ok) throw new Error();
+        const data = await response.json();
+        setTags(data.tags);
+      } catch {
+        toast.error("Could not load categories");
+      }
+    };
+    loadTags();
+  }, []);
+
   const token = localStorage.getItem("token");
 
   // Not logged in -> send to login
   if (!token || !currentUser) {
-    navigate("/login");
-    return null;
+    return <Navigate to="/login" replace />;
   }
 
   const canCreate = currentUser.role === "seller" || currentUser.role === "admin";
@@ -63,7 +77,7 @@ function CreateProductPage() {
           description: form.description.trim(),
           pictureUrl: form.pictureUrl.trim() || undefined,
           inventory: Number(form.inventory),
-          companyName: form.companyName.trim(),
+          tag: form.tag,
         }),
       });
 
@@ -150,6 +164,23 @@ function CreateProductPage() {
                       </Col>
                     </Row>
 
+                    <Form.Group className="mb-3" controlId="tag">
+                      <Form.Label>Category</Form.Label>
+                      <Form.Select
+                        name="tag"
+                        value={form.tag}
+                        onChange={handleChange}
+                        required
+                      >
+                        <option value="">Select a category...</option>
+                        {tags.map((tag) => (
+                          <option key={tag} value={tag}>
+                            {tag}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+
                     <Form.Group className="mb-3" controlId="description">
                       <Form.Label>Description</Form.Label>
                       <Form.Control
@@ -163,7 +194,7 @@ function CreateProductPage() {
                       />
                     </Form.Group>
 
-                    <Form.Group className="mb-3" controlId="pictureUrl">
+                    <Form.Group className="mb-4" controlId="pictureUrl">
                       <Form.Label>Picture URL (optional)</Form.Label>
                       <Form.Control
                         type="url"
@@ -172,23 +203,6 @@ function CreateProductPage() {
                         onChange={handleChange}
                         placeholder="https://example.com/photo.jpg"
                       />
-                    </Form.Group>
-
-                    <Form.Group className="mb-4" controlId="companyName">
-                      <Form.Label>Company Name</Form.Label>
-                      <Form.Control
-                        type="text"
-                        name="companyName"
-                        value={form.companyName}
-                        onChange={handleChange}
-                        maxLength={100}
-                        pattern="[A-Za-z0-9 ]+"
-                        title="Letters, numbers, and spaces only"
-                        required
-                      />
-                      <Form.Text muted>
-                        A new company is created if this name doesn't exist yet.
-                      </Form.Text>
                     </Form.Group>
 
                     <div className="d-grid">

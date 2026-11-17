@@ -12,6 +12,7 @@ app.use(express.json())
 app.use(cors())
 
 //Routes
+app.get("/health", (_req, res) => res.sendStatus(200));
 app.use('/api', authRoutes)
 app.use('/api/admin', adminRoutes)
 app.use("/api/products", productRoutes);

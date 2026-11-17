@@ -91,3 +91,39 @@ The PostgreSQL connection is passed to Prisma through the `PrismaPg` adapter in 
 
 Finally, run the backend and navigate to the localhost link it provides:
 `npm run dev`
+
+## Automated checks
+
+GitHub Actions runs checks on pushes and pull requests targeting `main` or
+`sprint_4`. The frontend job installs dependencies, runs ESLint, and builds the
+app. The backend job installs dependencies and runs the Jest test suite. These
+checks do not deploy the app; deployment can be added once a deployment process
+is selected.
+
+## Admin oversight
+
+The admin dashboard supports approving or denying pending accounts and listings. Admins can revoke or restore access for approved accounts, revoke or restore approved listings, review listing change history, and search recent account, order, and refund activity. Recent listing changes and user activity are searchable, paginated tables showing up to the latest 100 events each; select View to inspect details. Admin API routes require an authenticated admin account.
+
+The activity history is stored in the `ActivityLog` table. Apply the checked-in migrations and regenerate Prisma Client after updating the database schema.
+
+
+## Tests
+
+### Frontend
+
+Locally, configure the backend to use a test database and seed it before running
+the tests. From the `frontend` directory, run `npm run test:e2e`; Playwright
+starts the frontend and backend servers. Install the browser binaries first
+with `npx playwright install --with-deps`. The GitHub Actions workflow
+provisions a PostgreSQL service, applies migrations, seeds the test data, and
+runs the Playwright suite.
+
+The admin tests use the seeded admin login and create unique pending accounts
+and listings for each test, removing their fixtures afterward. They connect
+directly to the database using `DATABASE_URL` from the environment or
+`backend/.env`; ensure any reused backend server uses the same test database.
+Apply the migrations before running the tests.
+
+### Backend
+
+All you have to do is run `npm run test` to run all unit and integration tests on the backend.
