@@ -1,6 +1,7 @@
 import { Card, Button, Badge } from "react-bootstrap";
+import StarRating from "./StarRating";
 
-function ProductCard({ product, onApprove, onDeny }) {
+function ProductCard({ product, rating, onApprove, onDeny }) {
   const description = product.description || "";
 
   return (
@@ -26,7 +27,9 @@ function ProductCard({ product, onApprove, onDeny }) {
         <Card.Subtitle className={product.tag ? "mb-2 text-muted" : "mb-3 text-muted"}>
           Seller: {product.company?.name || "Unknown Company"}
         </Card.Subtitle>
-
+        <div className="mb-2 small">
+          <StarRating rating={rating}/>
+        </div>
         {product.tag && (
           <div className="mb-3">
             <Badge bg="secondary">{product.tag}</Badge>
