@@ -17,6 +17,7 @@ function ReviewsPage() {
     const [comment, setComment] = useState("");
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [selectedStar, setSelectedStar] = useState(0);
+    const [sortBy, setSortBy] = useState("newest");
 
     const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -89,7 +90,15 @@ function ReviewsPage() {
   }
   const visibleReviews = reviews.filter(
     (review) => selectedStar === 0 || review.rating === selectedStar,
-  );
+  ).sort((a,b) => {
+    if(sortBy === "highest" && a.rating !== b.rating) {
+        return b.rating - a.rating;
+    }
+    if(sortBy === "lowest" && a.rating !== b.rating) {
+        return a.rating - b.rating;
+    }
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
 
   const handleSubmitReview = async () => {
     if(newRating === 0) {
@@ -245,6 +254,15 @@ function ReviewsPage() {
                             </Button>
                         )}
                     </div>
+                    <Form.Select
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        style={{width: "220px", marginTop: "12px"}}
+                    >
+                        <option value="newest">Newest first</option>
+                        <option value="highest">Highest rating</option>
+                        <option value="lowest">Lowest rating</option>
+                    </Form.Select>
                     {currentUser && visibleReviews.length === 0 && (
                         <p>No reviews with this rating</p>
                     )}
