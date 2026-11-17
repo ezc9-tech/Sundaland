@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { Container, Badge } from "react-bootstrap";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import StarRating from "../components/StarRating";
 
 function ProductPage() {
   const { id } = useParams();
@@ -10,6 +11,7 @@ function ProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [similar, setSimilar] = useState([]);
+  const [rating, setRating] = useState(null);
 
   const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -88,6 +90,19 @@ function ProductPage() {
     loadSimilarProducts();
   },[product]);
 
+  useEffect(() => {
+    const loadRating = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/reviews/summary");
+        const data = await response.json();
+        setRating(data.summary[id] || null);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    loadRating();
+  }, [id]);
+
   if (isLoading) {
     return <p>Loading product...</p>;
   }
@@ -117,6 +132,9 @@ function ProductPage() {
             )}
             <h1 style={{ fontWeight: 700 }}>{product.name}</h1>
             <p style={{ color: "#6c757d" }}>Sold by {product.company.name}</p>
+            <div style={{marginbottom: "8px"}}>
+              <StarRating rating={rating}/>
+            </div>
             <div style={{ fontSize: "28px", fontWeight: 600 }}>
               ${Number(product.price).toFixed(2)}
             </div>

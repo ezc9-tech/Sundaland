@@ -9,6 +9,7 @@ function BuyerPage() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [ratings, setRatings] = useState({});
   const visibleProducts = products.filter((product) =>
     product.name.toLowerCase().includes(search.toLowerCase()),
   );
@@ -48,6 +49,19 @@ function BuyerPage() {
     };
     loadProducts();
   }, [navigate, currentUser]);
+
+  useEffect(() => {
+    const loadRatings = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/reviews/summary");
+        const data = await response.json();
+        setRatings(data.summary || {});
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    loadRatings();
+  }, []);
 
   if (currentUser?.role === "seller" || currentUser?.role === "admin") {
     return null;
@@ -93,7 +107,7 @@ function BuyerPage() {
                 to={`/product/${product.id}`}
                 style={{ textDecoration: "none", color: "#212529" }}
               >
-                <ProductCard product={product} />
+                <ProductCard product={product} rating = {ratings[product.id]} />
               </Link>
             ))}
           </div>
