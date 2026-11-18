@@ -18,6 +18,7 @@ function ReviewsPage() {
     const [showReviewForm, setShowReviewForm] = useState(false);
     const [selectedStar, setSelectedStar] = useState(0);
     const [sortBy, setSortBy] = useState("newest");
+    const [myReviewId, setMyReviewId] = useState(null);
 
     const [currentUser] = useState(() => {
     const userString = localStorage.getItem("user");
@@ -57,6 +58,9 @@ function ReviewsPage() {
             const data = await response.json();
             setReviews(data.reviews || []);
             setMode(data.mode);
+            if(data.myReview) {
+                setMyReviewId(data.myReview.id);
+            }
             if(data.mode === "edit") {
                 setNewRating(data.myReview.rating);
                 setComment(data.myReview.comment);
@@ -162,6 +166,9 @@ function ReviewsPage() {
                     value={comment}
                     onChange={(e) => setComment(e.target.value)}
                 />
+                <div style={{textAlign: "right", color: "#6c757d", fontSize: "14px"}}>
+                    {comment.length}/500
+                </div>
             </Modal.Body>
             <Modal.Footer>
                 <Button variant="secondary" onClick={closeReviewForm}>Cancel</Button>
@@ -264,7 +271,7 @@ function ReviewsPage() {
                         <option value="lowest">Lowest rating</option>
                     </Form.Select>
                     {currentUser && visibleReviews.length === 0 && (
-                        <p>No reviews with this rating</p>
+                        <p>{reviews.length === 0 ? "No reviews yet." : "No reviews with this rating"}</p>
                     )}
                     <div
                         style={{
@@ -283,7 +290,12 @@ function ReviewsPage() {
                                 }}
                             >
                                 <div className="d-flex justify-content-between align-items-center">
-                                    <div style={{fontWeight: 600}}>{review.user.firstName}</div>
+                                    <div style={{fontWeight: 600}}>
+                                        {review.user.firstName}
+                                        {review.id === myReviewId && (
+                                            <span style={{fontWright: 400, color: "#6c757d"}}> (Your review)</span>
+                                        )}
+                                    </div>
                                     <div style={{color: "#f5a623"}}>
                                         {"★".repeat(review.rating)}
                                         {"☆".repeat(5-review.rating)}
