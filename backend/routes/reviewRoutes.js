@@ -15,8 +15,8 @@ function getReviewMode(myReview, latestPurchase) {
 
 export async function getReviews(req, res) {
     try {
-        const productId = parseInt(req.params.id);
-        if (Number.isNaN(productId)) {
+        const productId = Number(req.params.id);
+        if (!Number.isInteger(productId) || productId <= 0) {
             return res.status(400).json({error: "Invalid product ID"});
         }
         const reviews = await prisma.review.findMany({
@@ -77,11 +77,12 @@ export async function createReview(req, res) {
         if (req.user.role !== "buyer") {
             return res.status(403).json({error: "Only buyers can leave reviews"});
         }
-        const productId = parseInt(req.body.productId);
-        const rating = Number(req.body.rating);
-        const comment = req.body.comment ? String(req.body.comment).trim() : "";
+        const body = req.body ?? {};
+        const productId = Number(body.productId);
+        const rating = Number(body.rating);
+        const comment = body.comment ? String(body.comment).trim() : "";
 
-        if(Number.isNaN(productId)) {
+        if(!Number.isInteger(productId) || productId <= 0) {
             return res.status(400).json({error: "Invalid product ID"});
         }
         if(!Number.isInteger(rating) || rating < 1 || rating > 5) {
@@ -127,8 +128,8 @@ export async function flagReview(req, res) {
             return res.status(403).json({error: "Only sellers can flag reviews"});
         }
 
-        const reviewId = parseInt(req.params.id);
-        if(Number.isNaN(reviewId)) {
+        const reviewId = Number(req.params.id);
+        if(!Number.isInteger(reviewId) || reviewId <= 0) {
             return res.status(400).json({error: "Invalid review ID"});
         }
 
