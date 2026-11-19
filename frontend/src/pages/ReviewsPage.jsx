@@ -140,6 +140,26 @@ function ReviewsPage() {
     }
   };
 
+  const handleFlag = async (review) => {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`http://localhost:3000/api/reviews/${review.id}/flag`, {
+            method: "PATCH",
+            headers: {Authorixation: `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if(!response.ok) {
+            throw new Error(data.error || "Could not flag the review");
+        }
+        toast.success("Review flagged.");
+        setReviews((prev) =>
+            prev.map((r) => (r.id === review.id ? {...r, flagged: true} : r)),
+        );
+    } catch (error) {
+        toast.error(error.message);
+    }
+  };
+
   return (
     <div style={{minHeight: "100vh", backgroundColor: "#f8f9fa"}}>
         <Navbar />
@@ -180,8 +200,8 @@ function ReviewsPage() {
         <Container>
             <div className="d-flex justify-content-between align-items-center">
                 <h1 style={{fontWeight: 700}}>{product.name}</h1>
-                <Button variant="primary" onClick={() => navigate(`/product/${product.id}`)}>
-                    Back to product
+                <Button variant="primary" onClick={() => navigate(currentUser?.role === "seller" ? "/seller-dashboard" : `/product/${product.id}`)}>
+                    {currentUser?.role === "seller" ? "Back to dashboard" : "Back to product"}
                 </Button>
             </div>
             <p style={{color: "#6c757d"}}>Sold by {product.company.name}</p>
@@ -305,6 +325,21 @@ function ReviewsPage() {
                                     {new Date(review.createdAt).toLocaleDateString()}
                                 </div>
                                 <div>{review.comment}</div>
+                                {currentUser?.role === "seller" && (
+                                    <div style={{marginTop: "12px"}}>
+                                        {review.flagged ? (
+                                            <span style={{color: "#dc3535"}}>Flagged</span>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="outline-danger"
+                                                onClick={() => handleFlag(review)}
+                                            >
+                                                Flag
+                                            </Button>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>

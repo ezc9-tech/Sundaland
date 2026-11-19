@@ -352,6 +352,14 @@ function SellerDashboardPage() {
                           </Button>
                           <Button
                             size="sm"
+                            variant="outline-secondary"
+                            className="me-2"
+                            onClick={() => navigate (`/reviews/${product.id}`)}
+                          >
+                            Reviews
+                          </Button>
+                          <Button
+                            size="sm"
                             variant="outline-danger"
                             onClick={() => handleDelete(product)}
                           >
