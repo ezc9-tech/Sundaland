@@ -45,6 +45,44 @@ test("Buyer can buy a product and see it in their order history", async ({
     page.getByText("2 x Ultra Wireless Mouse").first(),
   ).toBeVisible();
 });
+test("Buyer can write a new review after buying a product", async ({page}) => {
+  await loginAsBuyer(page);
+  await page
+    .getByRole("link", {name: /Ultra Wireless Mouse/})
+    .first()
+    .click();
+  await page.getByRole("link", {name: /\(\d+ reviews?\)/}).first().click();
+
+  await page.getByRole("button", {name: "Write a review"}).click();
+  await page.getByRole("dialog").getByText("☆", {exact: true}).nth(3).click();
+  await page.getByPlaceholder("What did you think?").fill("Works great, no lag");
+  await page.getByRole("button", {name: "Post review"}).click();
+
+  await expect(page.getByText("Review posted.")).toBeVisible();
+  await expect(page.getByText("Works great, no lag")).toBeVisible();
+  await expect(page.getByText("(Your review)")).toBeVisible();
+})
+
+test("Buyer can edit their review of a product they bought", async ({page}) => {
+  await loginAsBuyer(page);
+  await page
+    .getByRole("link", {name: /Pro Mechanical Keyboard/})
+    .first()
+    .click();
+    await page.getByRole("link", {name: /\(\d+ reviews?\)/}).first().click();
+    await expect(
+      page.getByRole("heading", {name: "Customer reviews"})
+    ).toBeVisible();
+
+    await page.getByRole("button", {name: "Edit your review"}).click();
+    await page.getByPlaceholder("What did you think?").fill("Still great");
+    await page.getByRole("button", {name: "Update review"}).click();
+
+    await expect(page.getByText("Review posted.")).toBeVisible();
+    await expect(page.getByText("Still great")).toBeVisible();
+    await expect(page.getByText("(Your review)")).toBeVisible();
+});
+
 
 test("Buyer can request a refund with a reason", async ({ page }) => {
   await loginAsBuyer(page);
