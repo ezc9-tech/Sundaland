@@ -68,6 +68,13 @@ describe("admin route access control", () => {
     expect(prisma.user.findMany).not.toHaveBeenCalled();
   });
 
+  test("rejects a seller trying to remove a review", async () => {
+    const res = await request(app)
+      .delete("/api/admin/reviews/8")
+      .set("Authorization", `Bearer ${tokenFor("seller", 7)}`);
+    expect(res.status).toBe(403);
+  });
+
   test("rejects disabled admin accounts before reaching a handler", async () => {
     prisma.user.findUnique.mockResolvedValue({ isActive: false });
 

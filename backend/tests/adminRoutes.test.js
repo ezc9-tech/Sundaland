@@ -19,7 +19,7 @@ const prisma = {
   },
   orderItem: { count: jest.fn() },
   cartToProducts: { deleteMany: jest.fn() },
-  review: { deleteMany: jest.fn() },
+  review: { deleteMany: jest.fn(), findFirst: jest.fn(), delete: jest.fn() },
   activityLog: {
     findMany: jest.fn(),
     create: jest.fn(),
@@ -44,6 +44,7 @@ const {
   getRecentActivity,
   setUserActiveStatus,
   setProductActiveStatus,
+  removeReview,
 } = await import("../routes/adminRoutes.js");
 
 function mockRes() {
@@ -512,5 +513,56 @@ describe("admin listing oversight", () => {
 
     expect(orderedRes.status).toHaveBeenCalledWith(409);
     expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+});
+
+describe("admin review removal", () => {
+  const reviewToRemove = {
+    id: 8,
+    rating: 2,
+    comment: "Meh",
+    userId: account.id,
+    productId: product.id,
+    user: account,
+    product: {name: product.name},
+  };
+
+  test("rejects an invalid review id", async () => {
+    const res = mockRes();
+
+    await removeReview(
+      {params: {id: "abc"}, user: req.user},
+      res,
+    );
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+  test("returns 404 when the review does not exist", async () => {
+    prisma.review.findFirst.mockResolvedValue(null);
+    const res = mockRes();
+
+    await removeReview(
+      {params: {id: "8"}, user: req.user},
+      res,
+    );
+    expect(res.status).toHaveBeenCalledWith(404);
+    expect(prisma.review.delete).not.toHaveBeenCalled();
+  });
+  test("remove a review and log in the activity log", async () => {
+    prisma.review.findFirst.mockResolvedValue(reviewToRemove);
+    prisma.activityLog.create.mockResolvedValue({id: 20, action: "REVIEW_REMOVED"});
+    const res = mockRes();
+    await removeReview({params: {id: "8"}, user: req.user}, res);
+
+    expect(prisma.review.delete).toHaveBeenCalledWith({where: {id: 8}});
+    expect(prisma.activityLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        action: "REVIEW_REMOVED",
+        entityType: "REVIEW",
+        entityId: 8,
+        subjectId: account.id,
+      }),
+    });
+    expect(res.status).toHaveBeenCalledWith(200);
   });
 });
