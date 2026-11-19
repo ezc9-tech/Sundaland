@@ -382,6 +382,9 @@ function AdminPage() {
   const filteredProductsForAudit = allProducts.filter((product) =>
     matchSearch(product, listingSearch),
   );
+  const listingsWithFlags = allProducts.filter(
+    (product) => product.reviews?.length >0,
+  ).length;
   const totalListingPages = Math.ceil(
     filteredProductsForAudit.length / itemsPerPage,
   );
@@ -432,6 +435,13 @@ function AdminPage() {
           </div>
         ) : (
           <>
+            {listingsWithFlags > 0 && (
+              <Alert variant="danger" className="border-0 shadow-sm mb-4">
+                {listingsWithFlags}{" "}
+                {listingsWithFlags === 1? "listing has" : "listings have"} flagged
+                reviews. Check the Listing Audit section below.
+              </Alert>
+            )}
             <section className="mb-5">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="h4 mb-0">Pending Accounts</h3>

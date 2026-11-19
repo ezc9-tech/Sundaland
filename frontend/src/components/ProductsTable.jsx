@@ -1,3 +1,4 @@
+import {Link} from "react-router-dom";
 import { Table, Button, Badge } from "react-bootstrap";
 
 export default function ProductsTable({
@@ -30,6 +31,12 @@ export default function ProductsTable({
           <tr key={product.id}>
             <td>
               <div className="fw-medium">{product.name}</div>
+              {product.reviews?.length > 0 && (
+                <Badge bg="danger">
+                  {product.reviews.length} flagged{" "}
+                  {product.reviews.length === 1 ? "review" : "reviews"}
+                </Badge>
+              )}
               <div
                 className="text-muted small text-truncate"
                 style={{ maxWidth: "300px" }}
@@ -74,6 +81,17 @@ export default function ProductsTable({
                       onClick={() => onViewAudit(product)}
                     >
                       History
+                    </Button>
+                  )}
+                  {auditMode && (
+                    <Button
+                      as={Link}
+                      to={`/reviews/${product.id}`}
+                      variant="outline-secondary"
+                      size="sm"
+                      className="fw-medium"
+                    >
+                      Reviews
                     </Button>
                   )}
                   <Button

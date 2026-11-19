@@ -95,6 +95,9 @@ function ReviewsPage() {
   const visibleReviews = reviews.filter(
     (review) => selectedStar === 0 || review.rating === selectedStar,
   ).sort((a,b) => {
+    if(sortBy === "flagged" && a.flagged !== b.flagged) {
+        return a.flagged ? -1 : 1;
+    }
     if(sortBy === "highest" && a.rating !== b.rating) {
         return b.rating - a.rating;
     }
@@ -145,7 +148,7 @@ function ReviewsPage() {
     try {
         const response = await fetch(`http://localhost:3000/api/reviews/${review.id}/flag`, {
             method: "PATCH",
-            headers: {Authorixation: `Bearer ${token}`},
+            headers: {Authorization: `Bearer ${token}`},
         });
         const data = await response.json();
         if(!response.ok) {
@@ -159,6 +162,38 @@ function ReviewsPage() {
         toast.error(error.message);
     }
   };
+
+  const isStaff = currentUser?.role === "seller" || currentUser?.role==="admin";
+  const goBack = () => {
+    if(currentUser?.role === "seller") {
+        navigate("/seller-dashboard");
+        return;
+    }
+    if(currentUser?.role === "admin") {
+        navigate("/admin-dashboard");
+        return;
+    }
+    navigate(`/product/${product.id}`);
+  };
+
+  const handleRemove = async (review) => {
+    if(!window.confirm("Remove this review? This can't be undone.")) return;
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`http://localhost:3000/api/admin/reviews/${review.id}`, {
+            method: "DELETE",
+            headers: {Authorization: `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if(!response.ok) {
+            throw new Error(data.error || "Could not remove the review");
+        }
+        toast.success("Review removed.");
+        setReviews((prev) => prev.filter((r) => r.id !== review.id));
+    } catch (error) {
+        toast.error(error.message);
+    }
+  }
 
   return (
     <div style={{minHeight: "100vh", backgroundColor: "#f8f9fa"}}>
@@ -200,8 +235,8 @@ function ReviewsPage() {
         <Container>
             <div className="d-flex justify-content-between align-items-center">
                 <h1 style={{fontWeight: 700}}>{product.name}</h1>
-                <Button variant="primary" onClick={() => navigate(currentUser?.role === "seller" ? "/seller-dashboard" : `/product/${product.id}`)}>
-                    {currentUser?.role === "seller" ? "Back to dashboard" : "Back to product"}
+                <Button variant="primary" onClick={goBack}>
+                    {isStaff ? "Back to dashboard" : "Back to product"}
                 </Button>
             </div>
             <p style={{color: "#6c757d"}}>Sold by {product.company.name}</p>
@@ -289,6 +324,7 @@ function ReviewsPage() {
                         <option value="newest">Newest first</option>
                         <option value="highest">Highest rating</option>
                         <option value="lowest">Lowest rating</option>
+                        {isStaff && <option value="flagged">Flagged first</option>}
                     </Form.Select>
                     {currentUser && visibleReviews.length === 0 && (
                         <p>{reviews.length === 0 ? "No reviews yet." : "No reviews with this rating"}</p>
@@ -313,7 +349,7 @@ function ReviewsPage() {
                                     <div style={{fontWeight: 600}}>
                                         {review.user.firstName}
                                         {review.id === myReviewId && (
-                                            <span style={{fontWright: 400, color: "#6c757d"}}> (Your review)</span>
+                                            <span style={{fontWeight: 400, color: "#6c757d"}}> (Your review)</span>
                                         )}
                                     </div>
                                     <div style={{color: "#f5a623"}}>
@@ -328,7 +364,7 @@ function ReviewsPage() {
                                 {currentUser?.role === "seller" && (
                                     <div style={{marginTop: "12px"}}>
                                         {review.flagged ? (
-                                            <span style={{color: "#dc3535"}}>Flagged</span>
+                                            <span style={{color: "#dc3545"}}>Flagged</span>
                                         ) : (
                                             <Button
                                                 size="sm"
@@ -338,6 +374,23 @@ function ReviewsPage() {
                                                 Flag
                                             </Button>
                                         )}
+                                    </div>
+                                )}
+                                {currentUser?.role === "admin" && (
+                                    <div
+                                        className="d-flex align-items-center"
+                                        style={{marginTop: "12px", gap: "12px"}}
+                                    >
+                                        {review.flagged && (
+                                            <span style={{color: "#dc3545"}}>Flagged</span>
+                                        )}
+                                        <Button
+                                            size="sm"
+                                            variant="outline-danger"
+                                            onClick={() => handleRemove(review)}
+                                        >
+                                            Delete
+                                        </Button>
                                     </div>
                                 )}
                             </div>
