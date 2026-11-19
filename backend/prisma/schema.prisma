@@ -138,6 +138,7 @@ model Review {
   rating    Int
   comment   String?
   createdAt DateTime @default(now())
+  flagged   Boolean @default(false)
 
   userId    Int
   productId Int
