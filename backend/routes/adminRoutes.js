@@ -187,6 +187,7 @@ export async function getAllProducts(req, res) {
     const products = await prisma.product.findMany({
       orderBy: { id: "desc" },
       include: {
+        reviews: {where: {flagged: true}, select: {id:true}},
         company: {
           include: {
             users: {
@@ -516,5 +517,47 @@ export async function setAccountInactive(req, res) {
     }
 
     return res.status(500).json({ error: "There was an internal server error" });
+  }
+}
+
+export async function removeReview(req, res) {
+  const id = Number(req.params.id);
+
+  if(!Number.isInteger(id) || id <= 0) {
+    return res.status(400).json({error: "A valid review ID is required"});
+  }
+
+  try {
+    const activityEvent = await prisma.$transaction(async (transaction) => {
+      const review = await transaction.review.findFirst({
+        where: {id},
+        include: {
+          user: {include: {login: {select: {email: true}}}},
+          product: {select: {name: true}},
+        },
+      });
+      if(!review) {
+        const error = new Error("Review not found");
+        error.code = "P2025";
+        throw error;
+      }
+      const event = await recordActivity(transaction, {
+        actor: req.user,
+        action: "REVIEW_REMOVED",
+        entityType: "REVIEW",
+        entityId: id,
+        subject: review.user,
+        details: {productName: review.product.name, rating: review.rating},
+      });
+      await transaction.review.delete({where: {id}});
+      return event;
+    });
+    return res.status(200).json({message: "Review removed", activityEvent});
+  } catch (error) {
+    console.error(error);
+    if(error.code === "P2025") {
+      return res.status(404).json({error: "Review not found"});
+    }
+    return res.status(500).json({error: "There was an internal server error"});
   }
 }
