@@ -9,6 +9,7 @@ import {
   Container,
   Modal,
   Spinner,
+  Button,
 } from "react-bootstrap";
 import UserTable from "../components/UserTable";
 import ProductsTable from "../components/ProductsTable";
@@ -32,6 +33,7 @@ function AdminPage() {
   const [productSearch, setProductSearch] = useState("");
   const [approvedUserSearch, setApprovedUserSearch] = useState("");
   const [listingSearch, setListingSearch] = useState("");
+  const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
 
   const [userPage, setUserPage] = useState(1);
   const [productPage, setProductPage] = useState(1);
@@ -380,7 +382,8 @@ function AdminPage() {
   );
 
   const filteredProductsForAudit = allProducts.filter((product) =>
-    matchSearch(product, listingSearch),
+    matchSearch(product, listingSearch) &&
+      (!showFlaggedOnly || product.reviews?.length > 0),
   );
   const listingsWithFlags = allProducts.filter(
     (product) => product.reviews?.length >0,
@@ -559,14 +562,25 @@ function AdminPage() {
             <section className="mt-5">
               <div className="d-flex justify-content-between align-items-center mb-3">
                 <h3 className="h4 mb-0">Listing Audit</h3>
-                <SearchBar
-                  placeholder="Search listings, companies, or sellers..."
-                  value={listingSearch}
-                  onChange={(e) => {
-                    setListingSearch(e.target.value);
-                    setListingPage(1);
-                  }}
-                />
+                <div className="d-flex gap-2">
+                  <Button
+                    variant={showFlaggedOnly ? "secondary" : "outline-danger"}
+                    onClick={() => {
+                      setShowFlaggedOnly(!showFlaggedOnly);
+                      setListingPage(1)
+                    }}
+                  >
+                    {showFlaggedOnly ? "Show all listings" : "Show flagged only"}
+                  </Button>
+                  <SearchBar
+                    placeholder="Search listings, companies, or sellers..."
+                    value={listingSearch}
+                    onChange={(e) => {
+                      setListingSearch(e.target.value);
+                      setListingPage(1);
+                    }}
+                  />
+                </div>
               </div>
 
               {allProducts.length === 0 ? (
@@ -575,7 +589,7 @@ function AdminPage() {
                 </Alert>
               ) : currentAuditProducts.length === 0 ? (
                 <Alert variant="warning" className="border-0 shadow-sm">
-                  No listings match your search.
+                  {showFlaggedOnly ? "No listings have flagged reviews." : "No listings match your search."}
                 </Alert>
               ) : (
                 <>

@@ -163,6 +163,27 @@ function ReviewsPage() {
     }
   };
 
+  const handleUnflag = async (review) => {
+    const token = localStorage.getItem("token");
+    try {
+        const response = await fetch(`http://localhost:3000/api/reviews/${review.id}/unflag`, {
+            method: "PATCH",
+            headers: {Authorization: `Bearer ${token}`},
+        });
+        const data = await response.json();
+        if(!response.ok) {
+            throw new Error(data.error || "Could not unflag the review");
+        }
+        toast.success("Review unflagged.");
+        setReviews((prev) =>
+            prev.map((r) => (r.id === review.id ? {...r, flagged: false} : r)),
+        );
+    } catch (error) {
+        toast.error(error.message);
+    }
+  };
+  
+
   const isStaff = currentUser?.role === "seller" || currentUser?.role==="admin";
   const goBack = () => {
     if(currentUser?.role === "seller") {
@@ -362,9 +383,21 @@ function ReviewsPage() {
                                 </div>
                                 <div>{review.comment}</div>
                                 {currentUser?.role === "seller" && (
-                                    <div style={{marginTop: "12px"}}>
+                                    <div 
+                                        className="d-flex align-items-center"
+                                        style={{marginTop: "12px", gap: "12px"}}
+                                    >
                                         {review.flagged ? (
-                                            <span style={{color: "#dc3545"}}>Flagged</span>
+                                            <>
+                                                <span style={{color: "#dc3545"}}>Flagged</span>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    onClick={() => handleUnflag(review)}
+                                                >
+                                                    Unflag
+                                                </Button>
+                                            </>
                                         ) : (
                                             <Button
                                                 size="sm"
@@ -382,7 +415,16 @@ function ReviewsPage() {
                                         style={{marginTop: "12px", gap: "12px"}}
                                     >
                                         {review.flagged && (
-                                            <span style={{color: "#dc3545"}}>Flagged</span>
+                                            <>
+                                                <span style={{color: "#dc3545"}}>Flagged</span>
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline-secondary"
+                                                    onClick={() => handleUnflag(review)}
+                                                >
+                                                    Unflag
+                                                </Button>
+                                            </>
                                         )}
                                         <Button
                                             size="sm"
