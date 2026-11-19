@@ -154,3 +154,31 @@ export async function flagReview(req, res) {
     }
 }
 
+export async function unflagReview(req, res) {
+    try {
+        if(req.user.role !== "seller" && req.user.role !== "admin") {
+            return res.status(403).json({error: "Only sellers and admins can unflag reviews"});
+        }
+        const reviewId = Number(req.params.id);
+        if(!Number.isInteger(reviewId) || reviewId <= 0) {
+            return res.status(400).json({error: "Invalid review ID"});
+        }
+        const where = req.user.role === "admin"
+            ? {id:reviewId}
+            : {id: reviewId, product: {company: {users: { some: {userId: req.user.userId}}}}};
+        const review = await prisma.review.findFirst({where});
+        if(!review) {
+            return res.status(404).json({error: "Review not found"});
+        }
+
+        await prisma.review.update({
+            where: {id: reviewId},
+            data: {flagged: false},
+        });
+        return res.status(200).json({message: "Review unflagged"});
+    } catch (error){
+        console.log(error);
+        res.status(500).json({error: "There was an internal server error"});
+    }
+}
+

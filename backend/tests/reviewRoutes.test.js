@@ -15,7 +15,7 @@ const prisma = {
 
 jest.unstable_mockModule("../utils/prisma.ts", () => ({prisma}));
 
-const {createReview, flagReview, getReviews} = await import("../routes/reviewRoutes.js");
+const {createReview, flagReview, getReviews, unflagReview} = await import("../routes/reviewRoutes.js");
 
 function mockRes() {
     const res = {};
@@ -31,6 +31,7 @@ async function call(handler, req) {
 }
 const buyer = {userId: 1, role: "buyer"};
 const seller = {userId: 2, role: "seller"};
+const admin = {userId: 3, role: "admin"};
 
 beforeEach(() => {
     jest.resetAllMocks();
@@ -93,6 +94,11 @@ describe("createReview", () => {
         });
         expect(res.status).toHaveBeenCalledWith(201);
     });
+    test("rejects a request with no body", async () => {
+        const res = await call(createReview, {user: buyer});
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({error: "Invalid product ID"});
+    });
 });
 
 describe("flagReview", () => {
@@ -150,7 +156,7 @@ describe("flagReview", () => {
 });
 
 describe("getReviews", () => {
-    test("rejects a review id that isn't a number", async () => {
+    test("rejects a product id that isn't a number", async () => {
         const res = await call(getReviews, {
             user: seller,
             params: {id: "abc"},
@@ -206,5 +212,57 @@ describe("getReviews", () => {
             params: {id: "3"},
         });
         expect(res.json).toHaveBeenCalledWith(expect.objectContaining({mode: "edit", average: 4.5, count: 2}));
+    });
+});
+describe("unflagReview", () => {
+    test("only sellers and admins can unflag reviews", async () => {
+        const res = await call(unflagReview, {
+            user: buyer, 
+            params: {id: "5"}
+        });
+        expect(res.status).toHaveBeenCalledWith(403);
+        expect(res.json).toHaveBeenCalledWith({error: "Only sellers and admins can unflag reviews"});
+    });
+    test("rejects a review id that isn't a number", async () => {
+        const res = await call(unflagReview, {
+            user: seller,
+            params: {id: "abc"},
+        });
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({error: "Invalid review ID"});
+    });
+    test("404 when the review isn't on the seller's product", async () => {
+        prisma.review.findFirst.mockResolvedValue(null);
+        const res = await call(unflagReview, {
+            user: seller,
+            params: {id: "5"},
+        });
+        expect(res.status).toHaveBeenCalledWith(404);
+        expect(res.json).toHaveBeenCalledWith({error: "Review not found"});
+        expect(prisma.review.update).not.toHaveBeenCalled();
+    });
+    test("Seller unflags a review on their own product", async () => {
+        prisma.review.findFirst.mockResolvedValue({id: 5});
+        const res = await call(unflagReview, {
+            user: seller,
+            params: {id: "5"},
+        });
+        expect(prisma.review.findFirst).toHaveBeenCalledWith({
+            where: {id: 5, product: {company: {users: {some: {userId: 2}}}}},
+        });
+        expect(prisma.review.update).toHaveBeenCalledWith({
+            where: {id: 5},
+            data: {flagged: false},
+        });
+        expect(res.status).toHaveBeenCalledWith(200);
+    });
+    test("an admin can unflag any review", async () => {
+        prisma.review.findFirst.mockResolvedValue({id: 5});
+        const res = await call(unflagReview, {
+            user: admin,
+            params: {id: "5"},
+        });
+        expect(prisma.review.findFirst).toHaveBeenCalledWith({where: {id: 5}});
+        expect(res.status).toHaveBeenCalledWith(200);
     });
 });

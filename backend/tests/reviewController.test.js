@@ -12,6 +12,7 @@ const stub = (name) =>
     getReviewSummary: stub("getReviewSummary"),
     createReview: stub("createReview"),
     flagReview: stub("flagReview"),
+    unflagReview: stub("unflagReview"),
 }));
 
 jest.unstable_mockModule("../middleware/auth.js", () => ({
@@ -68,6 +69,16 @@ describe("routes that need a token", () => {
         const res = await request(app).patch("/api/reviews/5/flag").set(AUTH);
         expect(res.status).toBe(200);
         expect(res.body.handler).toBe("flagReview");
+        expect(res.body.id).toBe("5");
+    });
+    test("PATCH /:id/unflag is rejected without a token", async () => {
+        const res = await request(app).patch("/api/reviews/5/unflag");
+        expect(res.status).toBe(401);
+    });
+    test("PATCH /:id/unflag unflags a review with a token", async () => {
+        const res = await request(app).patch("/api/reviews/5/unflag").set(AUTH);
+        expect(res.status).toBe(200);
+        expect(res.body.handler).toBe("unflagReview");
         expect(res.body.id).toBe("5");
     });
 });
