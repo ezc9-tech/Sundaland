@@ -313,6 +313,7 @@ describe("admin listing oversight", () => {
     expect(prisma.product.findMany).toHaveBeenCalledWith({
       orderBy: { id: "desc" },
       include: {
+        reviews: {where: {flagged: true}, select: {id: true}},
         company: {
           include: {
             users: {
